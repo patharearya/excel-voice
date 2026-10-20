@@ -222,3 +222,23 @@ Every failure is one shape: whole-column copy ("copy column C to column H")
 returned C2:C50 -> H2, expected C1:C50 -> H1. The prompt states the
 header-inclusion rule for copy and 20b ignores it consistently (copy-08 flaky).
 All 4 real mic transcripts passed 3/3. All 4 "none" cases returned [] 3/3.
+
+**gpt-oss-120b, 30 cases x 3 runs (after the fixes, 2 s gap):**
+| type | run1 | run2 | run3 | all |
+|---|---|---|---|---|
+| copy | 100% | 100% | 100% | 100% |
+| format | 100% | 100% | 100% | 100% |
+| compute | 100% | 100% | 100% | 100% |
+| sort | 100% | 100% | 100% | 100% |
+| none | 100% | 100% | 100% | 100% |
+| total | 100% | 100% | 100% | 100% |
+Median 677 ms, max 1309 ms. No flaky cases. A few 429s still occurred with
+the 2 s gap, all recovered by retry.
+**Decision:** default model = openai/gpt-oss-120b. 20b stays as the control
+(91%, fails only whole-column copies). Caveat: 26 of 30 cases are synthetic
+and written by me, so 100% says the prompt matches my own phrasing. The
+friend's recordings are the real test (Step 4).
+
+### Repo
+github.com/patharearya/excel-voice (private for now), branch main.
+Results files are ignored; the two eval reports above are the record.
