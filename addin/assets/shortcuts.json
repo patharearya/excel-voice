@@ -1,0 +1,8 @@
+{
+  "actions": [
+    { "id": "toggleRecord", "type": "ExecuteFunction", "name": "Start or stop voice recording" }
+  ],
+  "shortcuts": [
+    { "action": "toggleRecord", "key": { "default": "Ctrl+Shift+Alt+V" } }
+  ]
+}

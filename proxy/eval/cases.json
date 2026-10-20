@@ -1,0 +1,42 @@
+{
+  "context": {
+    "usedRange": "A1:D50",
+    "headers": { "A": "Item", "B": "Quantity", "C": "Price", "D": "Total" }
+  },
+  "cases": [
+    { "id": "copy-01", "type": "copy", "source": "mic 2026-10-19", "transcript": "Copy cell A2 and to cell C3.", "expected": [{ "action": "copy", "from": "A2", "to": "C3" }] },
+    { "id": "copy-02", "type": "copy", "source": "mic 2026-10-19", "transcript": "Copy cell B3 into cell D5.", "expected": [{ "action": "copy", "from": "B3", "to": "D5" }] },
+    { "id": "copy-03", "type": "copy", "source": "mic 2026-10-19", "transcript": "Copy cell B2 into cell D3.", "expected": [{ "action": "copy", "from": "B2", "to": "D3" }] },
+    { "id": "copy-04", "type": "copy", "source": "mic 2026-10-19", "transcript": "Copy cell B2 into cell C4.", "expected": [{ "action": "copy", "from": "B2", "to": "C4" }] },
+    { "id": "copy-05", "type": "copy", "source": "synthetic", "transcript": "copy column C to column H", "expected": [{ "action": "copy", "from": "C1:C50", "to": "H1" }] },
+    { "id": "copy-06", "type": "copy", "source": "synthetic", "transcript": "copy the price column to column F", "expected": [{ "action": "copy", "from": "C1:C50", "to": "F1" }] },
+    { "id": "copy-07", "type": "copy", "source": "synthetic", "transcript": "copy A2 through A10 to B2", "expected": [{ "action": "copy", "from": "A2:A10", "to": "B2" }] },
+    { "id": "copy-08", "type": "copy", "source": "synthetic", "transcript": "duplicate the quantity column into column G", "expected": [{ "action": "copy", "from": "B1:B50", "to": "G1" }] },
+
+    { "id": "format-01", "type": "format", "source": "synthetic", "transcript": "make column C currency", "expected": [{ "action": "format", "range": "C2:C50", "numberFormat": "currency" }] },
+    { "id": "format-02", "type": "format", "source": "synthetic", "transcript": "bold the header row", "expected": [{ "action": "format", "range": "A1:D1", "bold": true }] },
+    { "id": "format-03", "type": "format", "source": "synthetic", "transcript": "make column C currency and bold the header row", "expected": [{ "action": "format", "range": "C2:C50", "numberFormat": "currency" }, { "action": "format", "range": "A1:D1", "bold": true }] },
+    { "id": "format-04", "type": "format", "source": "synthetic", "transcript": "format the total column as percent", "expected": [{ "action": "format", "range": "D2:D50", "numberFormat": "percent" }] },
+    { "id": "format-05", "type": "format", "source": "synthetic", "transcript": "italicize A1 to D1", "expected": [{ "action": "format", "range": "A1:D1", "italic": true }] },
+    { "id": "format-06", "type": "format", "source": "synthetic", "transcript": "make the price column red", "expected": [{ "action": "format", "range": "C2:C50", "fontColor": "#FF0000" }] },
+    { "id": "format-07", "type": "format", "source": "synthetic", "transcript": "highlight B2 to B10 yellow", "expected": [{ "action": "format", "range": "B2:B10", "fillColor": "#FFFF00" }] },
+    { "id": "format-08", "type": "format", "source": "synthetic", "transcript": "format D2 to D50 as a number", "expected": [{ "action": "format", "range": "D2:D50", "numberFormat": "number" }] },
+
+    { "id": "compute-01", "type": "compute", "source": "synthetic", "transcript": "sum column D and put it in D51", "expected": [{ "action": "compute", "op": "sum", "range": "D2:D50", "target": "D51" }] },
+    { "id": "compute-02", "type": "compute", "source": "synthetic", "transcript": "average the price column into C51", "expected": [{ "action": "compute", "op": "average", "range": "C2:C50", "target": "C51" }] },
+    { "id": "compute-03", "type": "compute", "source": "synthetic", "transcript": "put the max of column B in F1", "expected": [{ "action": "compute", "op": "max", "range": "B2:B50", "target": "F1" }] },
+    { "id": "compute-04", "type": "compute", "source": "synthetic", "transcript": "count the items in column A and write it in A52", "expected": [{ "action": "compute", "op": "count", "range": "A2:A50", "target": "A52" }] },
+    { "id": "compute-05", "type": "compute", "source": "synthetic", "transcript": "total column B at the bottom", "expected": [{ "action": "compute", "op": "sum", "range": "B2:B50", "target": "B51" }] },
+    { "id": "compute-06", "type": "compute", "source": "synthetic", "transcript": "find the minimum price and put it in E1", "expected": [{ "action": "compute", "op": "min", "range": "C2:C50", "target": "E1" }] },
+
+    { "id": "sort-01", "type": "sort", "source": "synthetic", "transcript": "sort by price descending", "expected": [{ "action": "sort", "range": "A1:D50", "by": "C", "order": "desc", "hasHeader": true }] },
+    { "id": "sort-02", "type": "sort", "source": "synthetic", "transcript": "sort the table by quantity ascending", "expected": [{ "action": "sort", "range": "A1:D50", "by": "B", "order": "asc", "hasHeader": true }] },
+    { "id": "sort-03", "type": "sort", "source": "synthetic", "transcript": "sort A1 to D50 by column D from high to low", "expected": [{ "action": "sort", "range": "A1:D50", "by": "D", "order": "desc", "hasHeader": true }] },
+    { "id": "sort-04", "type": "sort", "source": "synthetic", "transcript": "sort by item name alphabetically", "expected": [{ "action": "sort", "range": "A1:D50", "by": "A", "order": "asc", "hasHeader": true }] },
+
+    { "id": "none-01", "type": "none", "source": "synthetic", "transcript": "delete column B", "expected": [] },
+    { "id": "none-02", "type": "none", "source": "synthetic", "transcript": "make F price times quantity", "expected": [] },
+    { "id": "none-03", "type": "none", "source": "synthetic", "transcript": "hello how are you", "expected": [] },
+    { "id": "none-04", "type": "none", "source": "mic 2026-10-19 (silent audio)", "transcript": "Thank you.", "expected": [] }
+  ]
+}

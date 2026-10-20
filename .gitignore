@@ -3,3 +3,5 @@ dist/
 .env
 *.log
 certs/
+recordings/
+proxy/eval/results/
