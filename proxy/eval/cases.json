@@ -34,6 +34,15 @@
     { "id": "sort-03", "type": "sort", "source": "synthetic", "transcript": "sort A1 to D50 by column D from high to low", "expected": [{ "action": "sort", "range": "A1:D50", "by": "D", "order": "desc", "hasHeader": true }] },
     { "id": "sort-04", "type": "sort", "source": "synthetic", "transcript": "sort by item name alphabetically", "expected": [{ "action": "sort", "range": "A1:D50", "by": "A", "order": "asc", "hasHeader": true }] },
 
+    { "id": "arith-01", "type": "arithmetic", "source": "typed by user 2026-10-21", "transcript": "Double the value of B5", "expected": [{ "action": "arithmetic", "range": "B5", "op": "multiply", "value": 2 }] },
+    { "id": "arith-02", "type": "arithmetic", "source": "typed by user 2026-10-21", "transcript": "Multiply the value of B5 by 2", "expected": [{ "action": "arithmetic", "range": "B5", "op": "multiply", "value": 2 }] },
+    { "id": "arith-03", "type": "arithmetic", "source": "typed by user 2026-10-21", "transcript": "Double column B", "expected": [{ "action": "arithmetic", "range": "B2:B50", "op": "multiply", "value": 2 }] },
+    { "id": "arith-04", "type": "arithmetic", "source": "typed by user 2026-10-21", "transcript": "double the Quantity", "expected": [{ "action": "arithmetic", "range": "B2:B50", "op": "multiply", "value": 2 }] },
+    { "id": "arith-05", "type": "arithmetic", "source": "synthetic", "transcript": "add 10 to C2 through C20", "expected": [{ "action": "arithmetic", "range": "C2:C20", "op": "add", "value": 10 }] },
+    { "id": "arith-06", "type": "arithmetic", "source": "synthetic", "transcript": "increase the prices by 10 percent", "expected": [{ "action": "arithmetic", "range": "C2:C50", "op": "multiply", "value": 1.1 }] },
+    { "id": "arith-07", "type": "arithmetic", "source": "synthetic", "transcript": "halve D10", "expected": [{ "action": "arithmetic", "range": "D10", "op": "divide", "value": 2 }] },
+    { "id": "arith-08", "type": "arithmetic", "source": "synthetic", "transcript": "subtract 5 from every quantity", "expected": [{ "action": "arithmetic", "range": "B2:B50", "op": "subtract", "value": 5 }] },
+
     { "id": "none-01", "type": "none", "source": "synthetic", "transcript": "delete column B", "expected": [] },
     { "id": "none-02", "type": "none", "source": "synthetic", "transcript": "make F price times quantity", "expected": [] },
     { "id": "none-03", "type": "none", "source": "synthetic", "transcript": "hello how are you", "expected": [] },

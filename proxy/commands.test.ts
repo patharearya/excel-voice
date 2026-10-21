@@ -47,7 +47,7 @@ describe("command schema", () => {
     expect(s.required).toEqual(["commands"]);
     expect(s.additionalProperties).toBe(false);
     const variants: any[] = s.properties.commands.items.anyOf ?? s.properties.commands.items.oneOf;
-    expect(variants.length).toBe(4);
+    expect(variants.length).toBe(5);
     for (const v of variants) {
       expect(v.additionalProperties).toBe(false);
       expect(v.required.sort()).toEqual(Object.keys(v.properties).sort());

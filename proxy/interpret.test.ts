@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { fetchWithRetry, interpret } from "./interpret.ts";
+import { fetchWithRetry, interpret, systemPrompt } from "./interpret.ts";
 
 const ctx = { usedRange: "A1:D50", headers: { A: "Item", B: "Quantity", C: "Price", D: "Total" } };
 const ok = (content: unknown) =>
@@ -34,6 +34,12 @@ describe("fetchWithRetry", () => {
       throw new TypeError("fetch failed", { cause: { code: "UND_ERR_CONNECT_TIMEOUT" } });
     });
     await expect(fetchWithRetry("x", {}, 0)).rejects.toThrow("fetch failed");
+  });
+});
+
+describe("systemPrompt", () => {
+  it("handles a single-cell used range (empty sheet)", () => {
+    expect(systemPrompt({ usedRange: "A1", headers: {} })).toContain("rows 1 to 1");
   });
 });
 

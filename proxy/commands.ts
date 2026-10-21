@@ -43,7 +43,15 @@ export const Sort = z.object({
   hasHeader: z.boolean(),
 });
 
-export const Command = z.discriminatedUnion("action", [Copy, Format, Compute, Sort]);
+// Change numbers in place: "double B5", "add 10 to column C".
+export const Arithmetic = z.object({
+  action: z.literal("arithmetic"),
+  range: Range,
+  op: z.enum(["add", "subtract", "multiply", "divide"]),
+  value: z.number(),
+});
+
+export const Command = z.discriminatedUnion("action", [Copy, Format, Compute, Sort, Arithmetic]);
 export const Response = z.object({ commands: z.array(Command) });
 
 export type Command = z.infer<typeof Command>;

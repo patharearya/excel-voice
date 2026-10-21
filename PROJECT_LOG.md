@@ -242,3 +242,58 @@ friend's recordings are the real test (Step 4).
 ### Repo
 github.com/patharearya/excel-voice (private for now), branch main.
 Results files are ignored; the two eval reports above are the record.
+
+## Step 2: executing commands in Excel (started 2026-10-21)
+- `proxy/plan.ts`: pure address maths shared by the add-in. `touched(cmd)`
+  is the one definition of "cells this command changes": the preview selects
+  it and Undo snapshots it. `problem(cmd)` refuses schema-valid commands
+  that must not run (compute target inside its own range = circular ref,
+  sort column outside the range, format with no change, off-grid address).
+  10 Vitest checks; broke the copy size (+1 row) and the circular check ->
+  3 red, restored -> green. Suite now 31 tests (log said 13 before: the 7
+  `interpret.test.ts` checks were never logged).
+- `addin/src/taskpane/apply.ts`: snapshot (formulas, numberFormat,
+  getCellProperties for font/fill/borders/alignment) per command, run,
+  sync. Undo restores snapshots in reverse, on the sheet id recorded at
+  apply time. Fill restore clears first and rewrites only cells whose
+  pattern is not None (a no-fill cell reads back as white). UNVERIFIED live.
+- Pane: transcript (or typed text) -> /interpret with the sheet's used range
+  and row-1 headers -> preview lines + cells selected -> Apply/Enter,
+  Cancel/Esc -> "Last:" line + Undo. The A1 write from the spike is gone.
+- Type check: tsc over excel.ts + apply.ts exit 0; one injected type error
+  -> exit 2. Webpack bundles plan.ts; zod is not pulled into the add-in.
+
+### DEFECT 4: empty sheet / missing context crashes the proxy
+**What broke.** Found by reading, then confirmed: `systemPrompt` did
+`last.replace` on `usedRange.split(":")`; an empty sheet's used range is
+`A1`, so `last` was undefined -> TypeError in the request handler -> proxy down.
+**First thought.** Only the empty-sheet case. **Measurement.** Wrote the
+test first (red without the fix), fixed with `last = first`. Then a request
+with no `context` at all came back `ok:false, reason: "network: Cannot read
+properties of undefined"`: the prompt was built inside the fetch try, so a
+bad request was labelled a network error. Moved the prompt build before the
+try; server.mjs now catches and answers 400 "bad request: ...". Live: A1
+context -> `[]`, no context -> 400, brief example -> the two expected
+format commands.
+
+### Scope change: arithmetic command (2026-10-21)
+**What broke.** User typed "Double the value of B5", "Multiply the value
+of B5 by 2", "Double column B", "double the Quantity": all "I didn't
+understand that".
+**First thought.** A parsing failure. **Measurement.** Proxy log: the model
+returned `[]` for every one. Correct behaviour: v1 had no command that
+changes values, and the prompt says return [] rather than invent one.
+**Change.** New command `arithmetic {range, op: add|subtract|multiply|
+divide, value}`, in place. Numbers are computed, formulas are wrapped to stay
+live (`=B2*C2` -> `=(B2*C2)*2`), text/blank/boolean untouched, divide by 0
+refused in plan.ts. Built from the snapshot already taken for Undo, so no
+extra read. Not covered: "double B and change price and total accordingly"
+(recalculating other columns) still returns [].
+- Tests 33 green; disabling the formula wrap -> 1 red, restored.
+- Eval, 38 cases (8 new arithmetic, 4 from the user's own phrasings) x 3:
+  arithmetic 100/100/100, total 97/100/100. New flake: format-06 "make the
+  price column red" once returned C1:C50 (header included) instead of
+  C2:C50; it was 3/3 before the prompt grew. Preview would show the header
+  selected. Watch it; don't patch the prompt for one flake.
+- Side note from the live log: "Make A5 Blue" -> fill, not font colour.
+  Ambiguous; ask the friend which he means.

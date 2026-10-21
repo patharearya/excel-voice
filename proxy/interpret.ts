@@ -15,7 +15,7 @@ export function systemPrompt(ctx: SheetContext): string {
   const headers = Object.entries(ctx.headers)
     .map(([col, name]) => `${col}="${name}"`)
     .join(", ");
-  const [first, last] = ctx.usedRange.split(":");
+  const [first, last = first] = ctx.usedRange.split(":"); // an empty sheet's used range is a single cell
   const lastRow = last.replace(/[A-Z]+/, "");
   const firstRow = first.replace(/[A-Z]+/, "");
   return `You turn one spoken instruction about an Excel sheet into a list of commands.
@@ -38,6 +38,7 @@ Commands:
 - copy: from (range), to (top-left destination cell).
 - format: range, then bold / italic / numberFormat (currency|percent|number) / fontColor / fillColor. Set only what was asked; every other field null. Colors as 6-digit hex, e.g. red #FF0000, yellow #FFFF00, green #00FF00, blue #0000FF.
 - compute: op (sum|average|min|max|count), range, target cell. "total" means sum.
+- arithmetic: change the numbers already in a range, in place: range, op (add|subtract|multiply|divide), value. "double" = multiply 2, "triple" = multiply 3, "halve" = divide 2, "increase by 10%" = multiply 1.1, "reduce by 10%" = multiply 0.9. It does not write results anywhere else and cannot recalculate other columns from the change.
 - sort: range (the used range unless told otherwise), by (column letter), order (asc|desc; "high to low"/"largest first" = desc, "alphabetically"/"A to Z" = asc), hasHeader true when the range starts at row 1.
 
 If the instruction cannot be expressed with these commands, or is not an instruction at all (greetings, "thank you", silence), return {"commands": []}. Never invent a command to fill the gap.`;
@@ -75,6 +76,9 @@ export async function interpret(
   const model = opts.model ?? DEFAULT_MODEL;
   const apiKey = opts.apiKey ?? process.env.GROQ_API_KEY;
   if (!apiKey) return { ok: false, reason: "GROQ_API_KEY not set", raw: null, model, ms: 0 };
+  // Built outside the try below, so a bad context throws to the caller
+  // instead of being mislabelled as a network error.
+  const system = systemPrompt(ctx);
   let r: Response;
   let ms = 0;
   try {
@@ -85,7 +89,7 @@ export async function interpret(
       model,
       temperature: 0,
       messages: [
-        { role: "system", content: systemPrompt(ctx) },
+        { role: "system", content: system },
         { role: "user", content: transcript },
       ],
       response_format: {

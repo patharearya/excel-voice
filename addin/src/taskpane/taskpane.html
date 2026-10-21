@@ -21,7 +21,17 @@
     <button id="record">Record</button>
     <div id="mics" style="font-size:12px;color:#777;margin-top:6px"></div>
     <div id="meter" style="height:8px;background:#eee;margin-top:8px"><div id="level" style="height:100%;width:0;background:#2a7"></div></div>
+    <input id="typed" placeholder="…or type a command, Enter" style="width:100%;margin-top:8px;font-size:14px;padding:6px;box-sizing:border-box" />
     <div id="transcript"></div>
+    <div id="preview" style="margin-top:12px;white-space:pre-wrap;font-size:15px"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button id="apply" disabled>Apply</button>
+      <button id="cancel" disabled>Cancel</button>
+    </div>
+    <div style="margin-top:16px;border-top:1px solid #ccc;padding-top:8px">
+      <div id="last" style="white-space:pre-wrap"></div>
+      <button id="undo" disabled style="margin-top:6px">Undo</button>
+    </div>
     <div id="status"></div>
     <div id="diag" style="font-size:12px;color:#777;margin-top:12px"></div>
   </main>

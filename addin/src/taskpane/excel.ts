@@ -1,8 +1,15 @@
-/* global console, document, navigator, fetch, Blob, MediaRecorder, MediaStream, Response, AudioContext, HTMLSelectElement, requestAnimationFrame, Excel, Office */
+/* global console, document, navigator, fetch, Blob, MediaRecorder, MediaStream, Response, AudioContext, HTMLSelectElement, HTMLInputElement, HTMLButtonElement, requestAnimationFrame, Office */
 
-// Step 0 spike: record from the mic inside the task pane, send to the local
-// proxy (-> Groq Whisper), write the transcript into A1.
-const PROXY = "http://localhost:8787/transcribe";
+// Task pane: mic (or typed text) -> proxy /transcribe -> proxy /interpret ->
+// preview (cells selected, nothing changed) -> Apply / Cancel -> Undo.
+import type { Command } from "../../../proxy/commands.ts";
+import { describe, problem } from "../../../proxy/plan.ts";
+import { sheetContext, select, apply, undo, type Undo } from "./apply";
+
+const PROXY = "http://localhost:8787";
+
+let pending: Command[] = []; // previewed, not yet applied
+let last: Undo | null = null; // one-step Undo
 
 let rec: MediaRecorder | null = null;
 let chunks: Blob[] = [];
@@ -23,6 +30,18 @@ Office.onReady((info) => {
   $("sideload-msg").style.display = "none";
   $("app-body").style.display = "block";
   $("record").onclick = () => toggle();
+  $("typed").onkeydown = (e) => {
+    if (e.key === "Enter") understand(($("typed") as HTMLInputElement).value);
+  };
+  $("apply").onclick = () => doApply();
+  $("cancel").onclick = () => showPreview([], "Cancelled.");
+  $("undo").onclick = () => doUndo();
+  // Enter applies, Escape cancels, while a preview is showing and focus is not in the text box.
+  document.onkeydown = (e) => {
+    if (!pending.length || e.target === $("typed")) return;
+    if (e.key === "Enter") doApply();
+    if (e.key === "Escape") showPreview([], "Cancelled.");
+  };
   listMics();
   shortcutDiag();
   // Evidence for the spike questions, visible without devtools.
@@ -137,7 +156,7 @@ async function transcribe(blob: Blob, info: string) {
   log(`sending ${blob.size} bytes (${blob.type}), ${info}…`);
   let r: Response;
   try {
-    r = await fetch(PROXY, { method: "POST", headers: { "Content-Type": blob.type }, body: blob });
+    r = await fetch(`${PROXY}/transcribe`, { method: "POST", headers: { "Content-Type": blob.type }, body: blob });
   } catch (e: any) {
     log(`proxy unreachable: ${e?.message}. Is "npm start" running in proxy/?`);
     return;
@@ -147,19 +166,75 @@ async function transcribe(blob: Blob, info: string) {
     log(`proxy ${r.status}: ${JSON.stringify(body)}`);
     return;
   }
-  $("transcript").textContent = body.text;
-  if (!inExcel) {
-    log(`${blob.size} bytes, ${info}\n(not in Excel, skipped sheet write)\n${micInfo}`);
-    return;
-  }
+  log(`${blob.size} bytes, ${info}\n${micInfo}`);
+  await understand(body.text);
+}
+
+// Transcript -> validated commands -> preview. Never guesses: anything the
+// proxy rejects, or that plan.ts flags, is shown with its reason and no Apply.
+async function understand(text: string) {
+  text = text.trim();
+  $("transcript").textContent = text;
+  if (!text) return;
+  if (!inExcel) return showPreview([], "Not in Excel: nothing to interpret against.");
+  let r: any;
   try {
-    await Excel.run(async (context) => {
-      context.workbook.worksheets.getActiveWorksheet().getRange("A1").values = [[body.text]];
-      await context.sync();
+    const context = await sheetContext();
+    showPreview([], "Interpreting…");
+    const res = await fetch(`${PROXY}/interpret`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ transcript: text, context }),
     });
-    log(`${blob.size} bytes, ${info}\nwrote transcript to A1\n${micInfo}`);
+    r = await res.json();
   } catch (e: any) {
-    log(`sheet write failed: ${e?.message}`);
+    return showPreview([], `Could not interpret: ${e?.message}. Is "npm start" running in proxy/?`);
+  }
+  console.log("interpret", text, r);
+  if (!r.ok) return showPreview([], `I didn't understand that (${r.reason}).`);
+  if (!r.commands.length) return showPreview([], "I didn't understand that as a command.");
+  const issues = r.commands.map(problem).filter(Boolean);
+  if (issues.length) return showPreview([], `Can't run this: ${issues.join("; ")}`, r.commands);
+  showPreview(r.commands, "Apply (Enter) or Cancel (Esc)?");
+  try {
+    await select(r.commands);
+  } catch (e: any) {
+    log(`could not select the preview cells: ${e?.message}`);
+  }
+}
+
+// `cmds` can be applied; `shown` is only listed (e.g. a command with a problem).
+function showPreview(cmds: Command[], message: string, shown: Command[] = cmds) {
+  pending = cmds;
+  $("preview").textContent = [...shown.map(describe), message].join("\n");
+  ($("apply") as HTMLButtonElement).disabled = !cmds.length;
+  ($("cancel") as HTMLButtonElement).disabled = !cmds.length;
+}
+
+async function doApply() {
+  const cmds = pending;
+  if (!cmds.length) return;
+  showPreview([], "Applying…", cmds);
+  try {
+    const r = await apply(cmds);
+    last = r.undo.snaps.length ? r.undo : null;
+    $("last").textContent = r.undo.done.length ? `Last: ${r.undo.done.join("; ")}` : "";
+    ($("undo") as HTMLButtonElement).disabled = !last;
+    showPreview([], r.error ? `Stopped: ${r.error}. Undo reverts what ran.` : "Done.", cmds);
+  } catch (e: any) {
+    showPreview([], `Apply failed: ${e?.message}`, cmds);
+  }
+}
+
+async function doUndo() {
+  if (!last) return;
+  try {
+    await undo(last);
+    last = null;
+    $("last").textContent = "Undone.";
+    ($("undo") as HTMLButtonElement).disabled = true;
+  } catch (e: any) {
+    $("last").textContent = `Undo failed: ${e?.message}`;
   }
 }
 

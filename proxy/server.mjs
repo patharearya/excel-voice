@@ -40,7 +40,14 @@ http
       } catch {
         return json(res, 400, { ok: false, reason: "body is not JSON" });
       }
-      const r = await interpret(input.transcript ?? "", input.context, { model: input.model });
+      let r;
+      try {
+        r = await interpret(input.transcript ?? "", input.context, { model: input.model });
+      } catch (e) {
+        // A bad context (missing usedRange) throws in the prompt builder; answer, don't crash the proxy.
+        console.error(`[${stamp}] interpret threw:`, e);
+        return json(res, 400, { ok: false, reason: `bad request: ${e?.message ?? e}` });
+      }
       console.log(`[${stamp}] interpret "${input.transcript}" -> ${r.ok ? JSON.stringify(r.commands) : "REJECTED " + r.reason} (${r.ms} ms)`);
       return json(res, 200, r);
     }
