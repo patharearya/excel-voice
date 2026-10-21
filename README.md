@@ -230,3 +230,7 @@ Current model `openai/gpt-oss-120b` scores 97–100% per run.
 - [PROJECT_LOG.md](PROJECT_LOG.md): every significant defect, what it first
   looked like, and the measurement that settled it. Read it first.
 - [BRIEF.md](BRIEF.md): the original goals, scope and plan.
+
+## License
+
+MIT: free to use, change and share, with no warranty. See [LICENSE](LICENSE).
