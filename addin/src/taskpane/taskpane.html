@@ -1,39 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Excel Voice (spike)</title>
+  <title>Excel Voice</title>
   <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
   <link href="taskpane.css" rel="stylesheet" type="text/css" />
-  <style>
-    body { font: 14px system-ui, sans-serif; padding: 12px; }
-    button { font-size: 18px; padding: 12px 24px; width: 100%; }
-    #status { margin-top: 12px; color: #555; white-space: pre-wrap; word-break: break-all; }
-    #transcript { margin-top: 12px; font-size: 16px; min-height: 2em; border: 1px solid #ccc; padding: 8px; }
-  </style>
 </head>
 <body>
-  <section id="sideload-msg">Sideload the add-in to see the panel.</section>
-  <main id="app-body" style="display:none">
-    <select id="mic" style="width:100%;margin-bottom:8px"></select>
-    <button id="record">Record</button>
-    <div id="mics" style="font-size:12px;color:#777;margin-top:6px"></div>
-    <div id="meter" style="height:8px;background:#eee;margin-top:8px"><div id="level" style="height:100%;width:0;background:#2a7"></div></div>
-    <input id="typed" placeholder="…or type a command, Enter" style="width:100%;margin-top:8px;font-size:14px;padding:6px;box-sizing:border-box" />
-    <div id="transcript"></div>
-    <div id="preview" style="margin-top:12px;white-space:pre-wrap;font-size:15px"></div>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button id="apply" disabled>Apply</button>
-      <button id="cancel" disabled>Cancel</button>
+  <section id="sideload-msg" class="sideload">Open this panel from Excel: Home tab, Excel Voice.</section>
+  <main id="app-body" hidden>
+    <div class="top">
+      <button id="record" class="mic" aria-describedby="status">
+        <svg class="icon icon-mic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg>
+        <svg class="icon icon-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>
+        <span id="record-label">Speak</span>
+      </button>
+      <div id="meter" class="meter" hidden><div id="level"></div></div>
+      <input id="typed" type="text" autocomplete="off" spellcheck="false" placeholder="Or type a command and press Enter" aria-label="Type a command" />
     </div>
-    <div style="margin-top:16px;border-top:1px solid #ccc;padding-top:8px">
-      <div id="last" style="white-space:pre-wrap"></div>
-      <button id="undo" disabled style="margin-top:6px">Undo</button>
-    </div>
-    <div id="status"></div>
-    <div id="diag" style="font-size:12px;color:#777;margin-top:12px"></div>
+
+    <p id="transcript" class="transcript" hidden></p>
+    <p id="status" class="status" role="status" aria-live="polite" data-tone="idle">Ready</p>
+
+    <section id="preview" class="preview" hidden aria-label="What will change">
+      <h2>Will change</h2>
+      <ul id="changes"></ul>
+      <div class="actions">
+        <button id="apply" class="primary">Apply <kbd>Enter</kbd></button>
+        <button id="cancel">Cancel <kbd>Esc</kbd></button>
+      </div>
+    </section>
+
+    <section id="examples" class="examples" aria-label="Things you can say">
+      <h2>Not sure what to say? Click one to try it.</h2>
+      <ul>
+        <li><button class="example">Bold the header row</button></li>
+        <li><button class="example">Make the price column currency</button></li>
+        <li><button class="example">Double column B</button></li>
+        <li><button class="example">Total column D at the bottom</button></li>
+        <li><button class="example">Sort by price, high to low</button></li>
+        <li><button class="example">Copy column C to column H</button></li>
+      </ul>
+    </section>
+
+    <footer id="last-bar" class="last" hidden>
+      <div>
+        <h2>Last change</h2>
+        <p id="last"></p>
+      </div>
+      <button id="undo">Undo</button>
+    </footer>
+
+    <details class="settings">
+      <summary>Microphone</summary>
+      <label for="mic">Input device</label>
+      <select id="mic"><option value="">System default</option></select>
+      <p class="hint">If nothing is picked up, choose a different device here. Bluetooth headsets often record silence until they are in use.</p>
+    </details>
+    <details class="settings">
+      <summary>Diagnostics</summary>
+      <pre id="diag"></pre>
+    </details>
   </main>
 </body>
 </html>

@@ -297,3 +297,46 @@ extra read. Not covered: "double B and change price and total accordingly"
   selected. Watch it; don't patch the prompt for one flake.
 - Side note from the live log: "Make A5 Blue" -> fill, not font colour.
   Ambiguous; ask the friend which he means.
+
+## Step 3: the panel (started 2026-10-21)
+- Rebuilt taskpane.html/css/excel.ts. One status line with a tone (idle,
+  busy, ok, warn, error) instead of the spike's debug dump. The debug output
+  moved into a collapsed "Diagnostics" section (last 40 lines, timestamped):
+  hidden, not deleted.
+- Empty state lists six example commands; clicking one runs it.
+- Silent mic: if peak < 2% the recording is not sent and the pane says
+  "No sound was picked up" (Defect 1 produced "Thank you." from silence).
+  Mic errors mapped: NotAllowedError -> Windows privacy setting,
+  NotFound/Overconstrained -> pick another device.
+- Proxy errors mapped: unreachable, 429 -> "too many requests, wait",
+  interpret reject -> generic retry message (reason kept in Diagnostics).
+- Colours follow Office.context.officeTheme; dark when body bg luminance < 0.5.
+- `busy` flag stops double submits (Enter twice, example clicked mid-request).
+- Visual check: headless Edge at 340 px cropped the shot; at 700 px the
+  layout filled the width, so the "overflow" was the headless minimum
+  window, not the CSS. Re-checked with body pinned to 320 px and the preview
+  + last-change states injected, light and dark: no overflow. Impeccable
+  detector flagged the level meter animating `width`; switched to
+  transform: scaleX. Detector clean after.
+- NOT verified live: the state flow, theme read and error messages inside Excel.
+- User feedback from the live pane: "Try saying" read as one of the commands
+  (same style as the list). Examples are now bordered chips under a plain
+  question heading. Light themes get a beige paper background (#f6f1e7) so
+  the pane doesn't blend into the white grid; applyTheme had been
+  overwriting --bg with Office's white, so it now only applies Office colours
+  in dark themes. Impeccable flags beige as a reflex palette; kept because
+  the user asked for it, for a stated reason.
+- Beige replaced after comparing three renders (beige, Fluent grey + white
+  cards, faint Excel-green tint) in the same state at 320 px. Chose grey
+  #f3f3f3 with white cards: matches Office's own panes, and the preview card
+  stands out most. Button hover had used --surface, which is now white like
+  the buttons (no visible hover); now color-mix of --fg into --field, which
+  works in both themes. Beige values: bg #f6f1e7, surface #ece4d4, field
+  #fffdf8, line #d6ccb8, muted #625a4e, fg #26231e (to revert).
+- User asked for silvery blue: bg #e8eef5, fg #1e2733, line #c5d0dd,
+  muted #536173 (blue-tinted so secondary text isn't neutral grey on blue),
+  white cards unchanged. Grey it replaced: bg #f3f3f3, fg #242424,
+  line #d1d1d1, muted #616161.
+- "Less grey, more blue": bg #dae6f7, fg #1a2638, line #b4c6e0, muted
+  #475a75. Contrast measured (WCAG formula): muted 5.57, fg 12.08,
+  warn 5.02, danger 5.18 on the new bg, all >= 4.5.
