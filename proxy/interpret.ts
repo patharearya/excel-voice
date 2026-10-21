@@ -36,9 +36,11 @@ How to resolve ranges:
 
 Commands:
 - copy: from (range), to (top-left destination cell).
-- format: range, then bold / italic / numberFormat (currency|percent|number) / fontColor / fillColor. Set only what was asked; every other field null. Colors as 6-digit hex, e.g. red #FF0000, yellow #FFFF00, green #00FF00, blue #0000FF.
-- compute: op (sum|average|min|max|count), range, target cell. "total" means sum.
-- arithmetic: change the numbers already in a range, in place: range, op (add|subtract|multiply|divide), value. "double" = multiply 2, "triple" = multiply 3, "halve" = divide 2, "increase by 10%" = multiply 1.1, "reduce by 10%" = multiply 0.9. It does not write results anywhere else and cannot recalculate other columns from the change.
+- format: range, then any of bold / italic / underline (true|false), fontSize (points), align (left|center|right), wrap (true|false), border (all = every cell boxed, outline = around the outside, bottom = line under the range, none = remove), numberFormat (currency|percent|number|date), decimals (places after the point, e.g. "2 decimals" = 2; alone it means numberFormat number), fontColor / fillColor. Set only what was asked; every other field null. Colors as 6-digit hex, e.g. red #FF0000, yellow #FFFF00, green #00FF00, blue #0000FF.
+- compute: op (sum|average|min|max|count|counta|median), range, target cell. "total" means sum. count counts numbers; counta counts non-empty cells ("how many filled", "count the entries"). It writes a formula into the target.
+- arithmetic: change the numbers already in a range, in place: range, op (add|subtract|multiply|divide|round), value. "double" = multiply 2, "triple" = multiply 3, "halve" = divide 2, "increase by 10%" = multiply 1.1, "reduce by 10%" = multiply 0.9, "round to 2 decimals" = round 2, "round to whole numbers" = round 0. It does not write results anywhere else and cannot recalculate other columns from the change.
+- clear: range, what (contents = delete values/formulas but keep formatting; formats = remove formatting, keep values; all = both). "clear"/"empty"/"delete the values in" = contents.
+- set: range, value (a number, or text exactly as spoken). Puts the same value in every cell of the range: "put 0 in B2 to B10", "write Done in E5". Never a formula.
 - sort: range (the used range unless told otherwise), by (column letter), order (asc|desc; "high to low"/"largest first" = desc, "alphabetically"/"A to Z" = asc), hasHeader true when the range starts at row 1.
 
 If the instruction cannot be expressed with these commands, or is not an instruction at all (greetings, "thank you", silence), return {"commands": []}. Never invent a command to fill the gap.`;

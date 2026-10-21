@@ -23,14 +23,20 @@ export const Format = z.object({
   range: Range,
   bold: z.boolean().nullable(),
   italic: z.boolean().nullable(),
-  numberFormat: z.enum(["currency", "percent", "number"]).nullable(),
+  underline: z.boolean().nullable(),
+  fontSize: z.number().nullable(),
+  align: z.enum(["left", "center", "right"]).nullable(),
+  wrap: z.boolean().nullable(),
+  border: z.enum(["all", "outline", "bottom", "none"]).nullable(),
+  numberFormat: z.enum(["currency", "percent", "number", "date"]).nullable(),
+  decimals: z.number().nullable(), // places after the point; with no numberFormat it means "number"
   fontColor: z.string().regex(HEX, "hex like #FF0000").nullable(),
   fillColor: z.string().regex(HEX, "hex like #FFFF00").nullable(),
 });
 
 export const Compute = z.object({
   action: z.literal("compute"),
-  op: z.enum(["sum", "average", "min", "max", "count"]),
+  op: z.enum(["sum", "average", "min", "max", "count", "counta", "median"]),
   range: Range,
   target: Cell,
 });
@@ -43,15 +49,30 @@ export const Sort = z.object({
   hasHeader: z.boolean(),
 });
 
-// Change numbers in place: "double B5", "add 10 to column C".
+// Change numbers in place: "double B5", "add 10 to column C", "round C to 2
+// decimals" (op round, value = decimal places).
 export const Arithmetic = z.object({
   action: z.literal("arithmetic"),
   range: Range,
-  op: z.enum(["add", "subtract", "multiply", "divide"]),
+  op: z.enum(["add", "subtract", "multiply", "divide", "round"]),
   value: z.number(),
 });
 
-export const Command = z.discriminatedUnion("action", [Copy, Format, Compute, Sort, Arithmetic]);
+// Empty cells: their contents, their formatting, or both.
+export const Clear = z.object({
+  action: z.literal("clear"),
+  range: Range,
+  what: z.enum(["contents", "formats", "all"]),
+});
+
+// Type one value into every cell of a range: "put 0 in B2 to B10".
+export const SetValue = z.object({
+  action: z.literal("set"),
+  range: Range,
+  value: z.union([z.string(), z.number()]),
+});
+
+export const Command = z.discriminatedUnion("action", [Copy, Format, Compute, Sort, Arithmetic, Clear, SetValue]);
 export const Response = z.object({ commands: z.array(Command) });
 
 export type Command = z.infer<typeof Command>;

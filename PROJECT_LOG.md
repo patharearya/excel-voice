@@ -340,3 +340,20 @@ extra read. Not covered: "double B and change price and total accordingly"
 - "Less grey, more blue": bg #dae6f7, fg #1a2638, line #b4c6e0, muted
   #475a75. Contrast measured (WCAG formula): muted 5.57, fg 12.08,
   warn 5.02, danger 5.18 on the new bg, all >= 4.5.
+
+## Feature batch 2 (2026-10-21, evening)
+- format: underline, fontSize, align, wrap, border (all/outline/bottom/none),
+  numberFormat date, decimals. New commands: clear (contents/formats/all),
+  set (one value into a range; strings starting "=" refused). arithmetic
+  round (decimal-safe, formulas wrapped in ROUND). compute counta, median.
+- Number-format codes moved to plan.ts `numberFormatCode` (tested).
+- Tests 38 green. Broke ROUND wrap and the no-change check -> 2 red, restored.
+  An old rejection test used "median" as the invalid op; once median became
+  valid it went red (the test was doing its job). Changed to "stdev".
+  Format fixtures in rejection tests lacked the new fields, so they would
+  have been rejected for the wrong reason: added the fields.
+- Eval: compute-04 ("count the items in column A") expected COUNT, which
+  returns 0 on a text column; now counta. 14 new cases (52 total).
+- NOT DONE: eval 52x3 was running at shutdown, no result saved; rerun
+  `npm run eval -- --repeat 3`. Not tested live in Excel. Borders and
+  underline Undo restore unverified.

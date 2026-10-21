@@ -25,7 +25,7 @@
     { "id": "compute-01", "type": "compute", "source": "synthetic", "transcript": "sum column D and put it in D51", "expected": [{ "action": "compute", "op": "sum", "range": "D2:D50", "target": "D51" }] },
     { "id": "compute-02", "type": "compute", "source": "synthetic", "transcript": "average the price column into C51", "expected": [{ "action": "compute", "op": "average", "range": "C2:C50", "target": "C51" }] },
     { "id": "compute-03", "type": "compute", "source": "synthetic", "transcript": "put the max of column B in F1", "expected": [{ "action": "compute", "op": "max", "range": "B2:B50", "target": "F1" }] },
-    { "id": "compute-04", "type": "compute", "source": "synthetic", "transcript": "count the items in column A and write it in A52", "expected": [{ "action": "compute", "op": "count", "range": "A2:A50", "target": "A52" }] },
+    { "id": "compute-04", "type": "compute", "source": "synthetic", "transcript": "count the items in column A and write it in A52", "expected": [{ "action": "compute", "op": "counta", "range": "A2:A50", "target": "A52" }], "note": "was count; COUNT on a text column returns 0, counta added 2026-10-21" },
     { "id": "compute-05", "type": "compute", "source": "synthetic", "transcript": "total column B at the bottom", "expected": [{ "action": "compute", "op": "sum", "range": "B2:B50", "target": "B51" }] },
     { "id": "compute-06", "type": "compute", "source": "synthetic", "transcript": "find the minimum price and put it in E1", "expected": [{ "action": "compute", "op": "min", "range": "C2:C50", "target": "E1" }] },
 
@@ -42,6 +42,25 @@
     { "id": "arith-06", "type": "arithmetic", "source": "synthetic", "transcript": "increase the prices by 10 percent", "expected": [{ "action": "arithmetic", "range": "C2:C50", "op": "multiply", "value": 1.1 }] },
     { "id": "arith-07", "type": "arithmetic", "source": "synthetic", "transcript": "halve D10", "expected": [{ "action": "arithmetic", "range": "D10", "op": "divide", "value": 2 }] },
     { "id": "arith-08", "type": "arithmetic", "source": "synthetic", "transcript": "subtract 5 from every quantity", "expected": [{ "action": "arithmetic", "range": "B2:B50", "op": "subtract", "value": 5 }] },
+
+    { "id": "format-09", "type": "format", "source": "synthetic 2026-10-21", "transcript": "underline the header row", "expected": [{ "action": "format", "range": "A1:D1", "underline": true }] },
+    { "id": "format-10", "type": "format", "source": "synthetic 2026-10-21", "transcript": "make A1 font size 14", "expected": [{ "action": "format", "range": "A1", "fontSize": 14 }] },
+    { "id": "format-11", "type": "format", "source": "synthetic 2026-10-21", "transcript": "center column B", "expected": [{ "action": "format", "range": "B2:B50", "align": "center" }] },
+    { "id": "format-12", "type": "format", "source": "synthetic 2026-10-21", "transcript": "wrap text in column A", "expected": [{ "action": "format", "range": "A2:A50", "wrap": true }] },
+    { "id": "format-13", "type": "format", "source": "synthetic 2026-10-21", "transcript": "put a border around the whole table", "expected": [{ "action": "format", "range": "A1:D50", "border": "outline" }] },
+    { "id": "format-14", "type": "format", "source": "synthetic 2026-10-21", "transcript": "add a line under the header row", "expected": [{ "action": "format", "range": "A1:D1", "border": "bottom" }] },
+    { "id": "format-15", "type": "format", "source": "synthetic 2026-10-21", "transcript": "show the prices with 1 decimal", "expected": [{ "action": "format", "range": "C2:C50", "decimals": 1 }] },
+    { "id": "format-16", "type": "format", "source": "synthetic 2026-10-21", "transcript": "format E2 to E50 as a date", "expected": [{ "action": "format", "range": "E2:E50", "numberFormat": "date" }] },
+
+    { "id": "clear-01", "type": "clear", "source": "synthetic 2026-10-21", "transcript": "clear column D", "expected": [{ "action": "clear", "range": "D2:D50", "what": "contents" }] },
+    { "id": "clear-02", "type": "clear", "source": "synthetic 2026-10-21", "transcript": "remove the formatting from the header row", "expected": [{ "action": "clear", "range": "A1:D1", "what": "formats" }] },
+
+    { "id": "set-01", "type": "set", "source": "synthetic 2026-10-21", "transcript": "put 0 in B2 through B10", "expected": [{ "action": "set", "range": "B2:B10", "value": 0 }] },
+    { "id": "set-02", "type": "set", "source": "synthetic 2026-10-21", "transcript": "write Done in E5", "expected": [{ "action": "set", "range": "E5", "value": "Done" }] },
+
+    { "id": "arith-09", "type": "arithmetic", "source": "synthetic 2026-10-21", "transcript": "round the prices to 2 decimals", "expected": [{ "action": "arithmetic", "range": "C2:C50", "op": "round", "value": 2 }] },
+
+    { "id": "compute-07", "type": "compute", "source": "synthetic 2026-10-21", "transcript": "put the median quantity in F2", "expected": [{ "action": "compute", "op": "median", "range": "B2:B50", "target": "F2" }] },
 
     { "id": "none-01", "type": "none", "source": "synthetic", "transcript": "delete column B", "expected": [] },
     { "id": "none-02", "type": "none", "source": "synthetic", "transcript": "make F price times quantity", "expected": [] },

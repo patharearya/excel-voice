@@ -3,10 +3,9 @@
 // add-in changes, so every command snapshots the cells it will change first and
 // Undo writes the snapshots back in reverse order.
 import type { Command } from "../../../proxy/commands.ts";
-import { touched, describe, formula, size, box, address, colNum, arithmetic } from "../../../proxy/plan.ts";
+import { touched, describe, formula, size, box, address, colNum, arithmetic, numberFormatCode } from "../../../proxy/plan.ts";
 
-// ponytail: US-style currency symbol; change here for the friend's locale.
-const NUMBER_FORMATS = { currency: "$#,##0.00", percent: "0%", number: "#,##0.00" };
+const EDGES = ["EdgeTop", "EdgeBottom", "EdgeLeft", "EdgeRight"] as const;
 
 // What a snapshot keeps. ponytail: conditional formats, comments, merges, data
 // validation and spilled arrays are not restored; add them if Undo is seen to miss one.
@@ -110,6 +109,18 @@ function restore(sheet: Excel.Worksheet, s: Snap) {
   );
 }
 
+// Inside lines only exist when the range has more than one row or column;
+// setting them on a single cell or line is skipped rather than risked.
+function border(r: Excel.Range, kind: "all" | "outline" | "bottom" | "none", { rows, cols }: { rows: number; cols: number }) {
+  const set = (edge: string, on: boolean) => {
+    r.format.borders.getItem(edge as Excel.BorderIndex).style = on ? "Continuous" : "None";
+  };
+  const inside = [...(rows > 1 ? ["InsideHorizontal"] : []), ...(cols > 1 ? ["InsideVertical"] : [])];
+  if (kind === "bottom") return set("EdgeBottom", true);
+  for (const e of EDGES) set(e, kind !== "none");
+  for (const e of inside) set(e, kind === "all");
+}
+
 // `snap` is the touched range as it was just before this command.
 function run(sheet: Excel.Worksheet, cmd: Command, snap: Snap) {
   const r = sheet.getRange(touched(cmd));
@@ -120,13 +131,27 @@ function run(sheet: Excel.Worksheet, cmd: Command, snap: Snap) {
     case "format":
       if (cmd.bold !== null) r.format.font.bold = cmd.bold;
       if (cmd.italic !== null) r.format.font.italic = cmd.italic;
+      if (cmd.underline !== null) r.format.font.underline = cmd.underline ? "Single" : "None";
+      if (cmd.fontSize !== null) r.format.font.size = cmd.fontSize;
+      if (cmd.align) r.format.horizontalAlignment = ({ left: "Left", center: "Center", right: "Right" } as const)[cmd.align];
+      if (cmd.wrap !== null) r.format.wrapText = cmd.wrap;
+      if (cmd.border) border(r, cmd.border, size(cmd.range));
       if (cmd.fontColor) r.format.font.color = cmd.fontColor;
       if (cmd.fillColor) r.format.fill.color = cmd.fillColor;
-      if (cmd.numberFormat) {
+      if (cmd.numberFormat || cmd.decimals !== null) {
         const { rows, cols } = size(cmd.range);
-        r.numberFormat = Array.from({ length: rows }, () => Array(cols).fill(NUMBER_FORMATS[cmd.numberFormat!]));
+        const code = numberFormatCode(cmd.numberFormat, cmd.decimals);
+        r.numberFormat = Array.from({ length: rows }, () => Array(cols).fill(code));
       }
       break;
+    case "clear":
+      r.clear(({ contents: "Contents", formats: "Formats", all: "All" } as const)[cmd.what]);
+      break;
+    case "set": {
+      const { rows, cols } = size(cmd.range);
+      r.values = Array.from({ length: rows }, () => Array(cols).fill(cmd.value));
+      break;
+    }
     case "compute":
       r.formulas = [[formula(cmd)]];
       break;
