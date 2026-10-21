@@ -15,8 +15,9 @@ would rather say what they want than click through it.
   so Excel Voice keeps its own copy of the cells it changes.
 
 > **Status:** early, working prototype (personal project). It runs on your own
-> computer: you start two small programs from a terminal, then use the panel
-> inside Excel. There is no one-click installer yet.
+> computer: you start it from two Command Prompt windows, then use the panel
+> inside Excel. There is no one-click installer yet, but the steps below
+> assume no coding experience.
 
 ---
 
@@ -41,95 +42,231 @@ gets *"I didn't catch a command in that"*. Excel Voice never guesses.
 
 ## What you need
 
-- **Windows** with **desktop Excel** (Microsoft 365 or Office 2021 or later).
-  Excel on the web and Mac are not supported.
-- **A microphone.** Typing commands into the panel also works.
-- **Node.js 24 LTS** (22.18 or newer also works). Download the Windows
-  installer from <https://nodejs.org> and accept the defaults.
-- **Git**, to download this project: <https://git-scm.com/download/win>.
-  Alternatively, use the green **Code** button on GitHub → **Download ZIP**,
-  and unzip it.
-- **A free Groq account** for the API key: <https://console.groq.com>. Sign up
-  with Google or email; no card is asked for.
+- **A Windows computer with desktop Excel** (Microsoft 365, or Office 2021 or
+  later). Excel in a web browser and Excel on Mac won't work.
+- **A microphone.** Your laptop's built-in one is fine. You can also type
+  commands instead of speaking.
+- **About 20 minutes** for the one-time setup below.
+
+You don't need to know how to code. You will copy and paste a few lines into a
+window called **Command Prompt**; every step below says exactly what to paste
+and what you should see.
 
 ---
 
-## Install (once)
+## Part 1: One-time setup
 
-Open a terminal: press the Windows key, type **Terminal** (or **PowerShell**),
-press Enter. Run each block below in order.
+Do Part 1 once. After that, you only need Part 2 each time you use it.
 
-### 1. Download the project
+### Step 1. Install Node.js
+
+Node.js is a free program that runs Excel Voice's two small helper programs.
+
+1. Go to <https://nodejs.org>.
+2. Click the big button that says **LTS** (it downloads a file ending in
+   `.msi`).
+3. Open the downloaded file and click **Next** on every screen, then
+   **Install**, then **Finish**. The default options are all fine.
+
+### Step 2. Install Git
+
+Git is a free program that downloads this project for you.
+
+1. Go to <https://git-scm.com/download/win>.
+2. Click **Click here to download** (the 64-bit version).
+3. Open the downloaded file and click **Next** on every screen (there are a
+   lot; the defaults are fine), then **Install**, then **Finish**.
+
+### Step 3. Open Command Prompt
+
+Command Prompt is a window where you type (or paste) instructions for your
+computer, one line at a time.
+
+1. Press the **Windows key** on your keyboard.
+2. Type **cmd**.
+3. Click **Command Prompt** in the results.
+
+A black window opens with a line like:
+
+```
+C:\Users\YourName>
+```
+
+This is where you'll paste every command in Part 1. **To run a command:**
+copy it from this page, click inside the black window, press **Ctrl+V** to
+paste it (or right-click), then press **Enter**. Wait until the
+`C:\Users\YourName>` line appears again before pasting the next one.
+
+**Check that steps 1 and 2 worked.** Paste this and press Enter:
+
+```
+node --version
+```
+
+You should see a version number such as `v24.11.0`. Then paste this and press
+Enter:
+
+```
+git --version
+```
+
+You should see something like `git version 2.51.0`.
+
+> If you see **"is not recognized as an internal or external command"**,
+> close the Command Prompt window, open a new one (Step 3 again), and retry.
+> Programs installed while Command Prompt was open aren't visible to it until
+> you reopen it. If it still fails, repeat Step 1 or Step 2.
+
+### Step 4. Download Excel Voice
+
+In the same Command Prompt window, paste this and press Enter:
 
 ```
 git clone https://github.com/patharearya/excel-voice.git
-cd excel-voice
 ```
 
-### 2. Get a Groq API key
+You'll see a few lines ending in `done.` This created a folder called
+**excel-voice** inside your user folder (`C:\Users\YourName\excel-voice`).
 
-1. Go to <https://console.groq.com/keys> and sign in.
-2. Click **Create API Key**, give it any name, and copy the key (it starts
-   with `gsk_`). You only see it once.
+### Step 5. Get your free Groq key
 
-### 3. Set up the voice service (the "proxy")
+Groq is the free online service that turns your speech into text and works
+out what you meant. It needs a "key", a long password that identifies you.
 
-The proxy is a small program on your own computer. It holds your Groq key so
-the key never sits inside Excel.
+1. Go to <https://console.groq.com> and sign up (Google account or email).
+   It doesn't ask for a credit card.
+2. Go to <https://console.groq.com/keys> and click **Create API Key**.
+3. Type any name (for example `excel`) and click **Submit**.
+4. Click the copy button next to the key. It starts with `gsk_`.
+   **Keep this page open**: Groq only shows the key once. If you lose it,
+   just create another.
 
-```
-cd proxy
-npm install
-copy .env.example .env
-notepad .env
-```
+### Step 6. Set up the voice service
 
-Notepad opens with one line: `GROQ_API_KEY=gsk_...`. Replace `gsk_...` with
-your key, save, and close Notepad.
+Back in Command Prompt, paste each line below **one at a time**, pressing
+Enter after each and waiting for it to finish.
 
-> Keep the key private. `.env` is excluded from Git, so it won't be uploaded
-> if you push changes. If it ever leaks, delete it at console.groq.com and
-> make a new one.
-
-### 4. Set up the Excel add-in
-
-```
-cd ..\addin
-npm install
-```
-
-This takes a few minutes the first time.
-
----
-
-## Start it (every time you want to use it)
-
-You need **two terminal windows**: one for the proxy, one for the add-in.
-
-**Terminal 1: the proxy**
+Go into the project's `proxy` folder:
 
 ```
 cd excel-voice\proxy
-npm start
 ```
 
-Wait for `proxy listening on http://localhost:8787`. Leave this window open.
-
-**Terminal 2: the add-in**
+The line now ends in `\excel-voice\proxy>`. Download what it needs (takes
+under a minute):
 
 ```
-cd excel-voice\addin
-npm start
+npm install
 ```
 
-- **The first time only**, Windows asks to install a "development
-  certificate" for `localhost`. Click **Yes** on each prompt. The add-in runs
-  over HTTPS on your own machine and needs this to be trusted.
-- Excel then opens with the add-in loaded. On the **Home** tab, at the right,
-  click **Excel Voice** (in the **Voice** group). The panel opens on the right.
+It finishes with a line like `added 36 packages` (a note about packages
+"looking for funding" is normal too). Lines starting with `npm warn` are fine;
+only lines starting with `npm error` mean something went wrong.
 
-If the panel is blank, the add-in's local web server was still starting. Close
-the panel with the **X** and click **Excel Voice** again.
+Make your settings file:
+
+```
+copy .env.example .env
+```
+
+You should see `1 file(s) copied.` Now open it:
+
+```
+notepad .env
+```
+
+Notepad opens with one line:
+
+```
+GROQ_API_KEY=gsk_...
+```
+
+Delete `gsk_...` and paste your key in its place, so the line reads
+`GROQ_API_KEY=gsk_` followed by the rest of your key, with no spaces. Click
+**File → Save**, then close Notepad.
+
+> Your key stays in this file on your computer. Don't share it or post it
+> anywhere. If it ever leaks, delete it on the Groq keys page and make a new
+> one.
+
+### Step 7. Set up the Excel add-in
+
+Still in Command Prompt, paste these one at a time:
+
+```
+cd ..\addin
+```
+
+The line now ends in `\excel-voice\addin>`.
+
+```
+npm install
+```
+
+This one takes a few minutes and prints a lot. Wait for the
+`C:\Users\YourName\excel-voice\addin>` line to come back.
+
+**Part 1 is done.** You can close Command Prompt.
+
+---
+
+## Part 2: Start Excel Voice (every time)
+
+Excel Voice needs **two Command Prompt windows** open while you use it: one
+runs the voice service, the other loads the panel into Excel.
+
+**First, close Excel** if it's open. Excel Voice opens it for you.
+
+### Window 1: start the voice service
+
+1. Open Command Prompt (Windows key, type **cmd**, click **Command Prompt**).
+2. Paste these one at a time, pressing Enter after each:
+
+   ```
+   cd excel-voice\proxy
+   ```
+
+   ```
+   npm start
+   ```
+
+3. You should see:
+
+   ```
+   proxy listening on http://localhost:8787 ...
+   ```
+
+**Leave this window open**, and don't type anything else in it. You can
+minimise it. If you close it, the panel can't hear you.
+
+### Window 2: open Excel with the panel
+
+1. Open a **second** Command Prompt window the same way.
+2. Paste these one at a time:
+
+   ```
+   cd excel-voice\addin
+   ```
+
+   ```
+   npm start
+   ```
+
+3. **The first time only**, Windows shows pop-ups about installing a
+   **certificate** ("Developer CA for Microsoft Office Add-ins"), and possibly
+   "Do you want to allow this app to make changes to your device?". Click
+   **Yes** on each. This lets the panel run securely on your own computer.
+4. **A third black window opens by itself** and fills with text. That's the
+   panel's helper. Leave it open too (minimising is fine).
+5. Excel opens after 10–30 seconds. Window 2 might say "Unable to start the
+   dev server" first; that only means the helper was slow to start, and Excel
+   opens anyway.
+6. In Excel, open a workbook (a blank one is fine). On the **Home** tab,
+   look at the far right end of the ribbon for **Excel Voice** (in a group
+   called **Voice**) and click it. The panel opens on the right side.
+
+> **Blank panel?** It opened before everything was ready. Close the panel
+> with the **X** in its top corner and click **Excel Voice** again.
 
 ---
 
@@ -147,18 +284,26 @@ the panel with the **X** and click **Excel Voice** again.
 Not sure what to say? With nothing pending, the panel shows example commands.
 Click one to try it.
 
-**First recording:** Windows or Excel may ask for microphone permission.
-Allow it.
+**First recording:** Windows or Excel may ask for permission to use the
+microphone. Click **Allow**.
 
 ---
 
 ## Stop it
 
-- In the add-in terminal (Terminal 2), or any terminal in the `addin` folder:
-  `npm run stop`. This unloads the add-in and stops its web server.
-- In the proxy terminal (Terminal 1), press **Ctrl+C**.
+1. Click into **Window 2** (the one you used to open Excel) and paste:
 
-You can then close Excel normally.
+   ```
+   npm run stop
+   ```
+
+   This removes the panel from Excel and closes the helper window that opened
+   by itself.
+2. Click into **Window 1** (the voice service) and press **Ctrl+C**. If it
+   asks `Terminate batch job (Y/N)?`, type `Y` and press Enter.
+3. Close both Command Prompt windows, and close Excel as normal.
+
+Next time, start again from **Part 2**.
 
 ---
 
@@ -166,9 +311,14 @@ You can then close Excel normally.
 
 | What you see | What to do |
 |---|---|
+| **"… is not recognized as an internal or external command"** (for `node`, `npm` or `git`) | Close Command Prompt and open a new one. If it still happens, install Node.js or Git again (Part 1, Steps 1–2). |
+| **"The system cannot find the path specified"** after `cd excel-voice\...` | Command Prompt isn't in your user folder. Close it, open a new one (it starts in the right place), and paste the line again. If it still fails, Step 4 (download) didn't finish; run it again. |
+| **"running scripts is disabled on this system"** | You're in PowerShell, not Command Prompt. Open **Command Prompt** instead (Windows key, type **cmd**). |
+| **Window 1 shows "GROQ_API_KEY is not set"** | The key wasn't saved. Repeat the `notepad .env` part of Step 6, make sure you clicked **File → Save**. |
+| **No Excel Voice button on the Home tab** | Check Window 2 for an error. Run `npm run stop` there, then `npm start` again. |
 | **"No sound was picked up"** | The mic recorded silence. Open **Microphone** at the bottom of the panel and pick another device. Bluetooth headsets (AirPods, etc.) often record silence until they're actively in use. |
 | **"Microphone access is blocked"** | Windows Settings → Privacy & security → Microphone: turn on microphone access, and access for desktop apps. |
-| **"Can't reach the voice service"** | The proxy isn't running. Start it (Terminal 1 above). |
+| **"Can't reach the voice service"** | The voice service isn't running. Start it (Part 2, Window 1) and keep that window open. |
 | **"Too many requests right now"** | Groq's free tier allows about 30 requests a minute. Wait a few seconds. |
 | **"I didn't catch a command in that"** | The sentence wasn't one of the supported commands, or it was misheard. Check the quoted transcript in the panel, then rephrase or type it. |
 | **"Can't do this safely: …"** | The command was understood but would cause a problem, such as putting a total inside the range it adds up (a circular reference). The reason is shown; rephrase with a different target cell. |
