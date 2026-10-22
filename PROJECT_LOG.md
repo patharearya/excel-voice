@@ -392,3 +392,5 @@ extra read. Not covered: "double B and change price and total accordingly"
   checked from the PNG headers. Removed unused template logo-filled.png.
 - Initials were too faint to read at the size Excel shows (user: "doesn't have
   my initials"). Raised from 15 px / 42% opacity to 22 px bold / 70%.
+- User asked for mic and AP 50/50: mic left half, bold "AP" right half,
+  faint divider. 16 px stays mic-only (8 px per half cannot hold letters).
