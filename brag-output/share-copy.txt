@@ -1,0 +1,2 @@
+I built Excel Voice: talk to Excel. Say "make column C currency and bold the header row", check the preview, press Enter. Free, desktop Excel on Windows, one-file install, and it has its own one-step Undo because Ctrl+Z can't undo add-in changes.
+patharearya.github.io/excel-voice
