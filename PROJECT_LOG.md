@@ -394,3 +394,32 @@ extra read. Not covered: "double B and change price and total accordingly"
   my initials"). Raised from 15 px / 42% opacity to 22 px bold / 70%.
 - User asked for mic and AP 50/50: mic left half, bold "AP" right half,
   faint divider. 16 px stays mic-only (8 px per half cannot hold letters).
+
+## Eval of feature batch 2 (2026-10-22)
+- 52 cases x 3: 150/156. format-14 ("add a line under the header row")
+  returned no command 3/3: the model read "line under" as underline, which
+  didn't fit the range. Prompt now separates underline (the text) from
+  border bottom (a line under cells). format-15 ("1 decimal") returned
+  numberFormat number + decimals 1, which does the same thing: eval cases
+  can now list `alsoAccept` answers, per case, never inferred.
+
+## Feature batch 3 (2026-10-22)
+- New commands: text (upper/lower/proper/trim), replace, series
+  (number/month/weekday), highlight (colour only cells passing a test,
+  evaluated in code), select, ask (answer shown in the panel, nothing
+  written). format gains strikethrough and fontName. select and ask take
+  no snapshot and skip the preview.
+- Tests 45 green. Broke series direction and the median midpoint -> red.
+  Removed the blank-cell guard in matches() -> stayed green: nothing tested
+  "not equal" over an empty cell, so "highlight what isn't Done" would have
+  painted blanks unnoticed. Added that case, saw it go red on the break,
+  restored. Add-in production build clean.
+- NOT DONE: eval of the 64 cases (12 new, plus the two fixes above). Groq
+  free tier for gpt-oss-120b allows ~8000 tokens/min (x-ratelimit header
+  showed 7923 remaining after a tiny request); the eval was hitting 429 on
+  every call and, after 3 retries, scoring them as failures, so the run was
+  stopped at ~15 min with no usable result. First thought it was the 2 s
+  request gap; the token cap is the limit. The batch-3 prompt is ~30% larger
+  (interpret.ts 6.9 KB -> 8.9 KB). Next: measure tokens per request, set
+  --gap from it, and stop counting 429s as model failures.
+- Not tested live in Excel. Undo after highlight/replace/series unverified.

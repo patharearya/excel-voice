@@ -7,8 +7,8 @@ describe("command schema", () => {
   it("accepts every example shape from the brief", () => {
     const r = ok([
       { action: "copy", from: "C2:C50", to: "H2" },
-      { action: "format", range: "A1:D1", bold: true, italic: null, underline: null, fontSize: null, align: null, wrap: null, border: null, decimals: null, numberFormat: null, fontColor: null, fillColor: null },
-      { action: "format", range: "C2:C5", bold: null, italic: null, underline: null, fontSize: null, align: null, wrap: null, border: null, decimals: null, numberFormat: "currency", fontColor: null, fillColor: null },
+      { action: "format", range: "A1:D1", bold: true, italic: null, underline: null, strikethrough: null, fontSize: null, fontName: null, align: null, wrap: null, border: null, decimals: null, numberFormat: null, fontColor: null, fillColor: null },
+      { action: "format", range: "C2:C5", bold: null, italic: null, underline: null, strikethrough: null, fontSize: null, fontName: null, align: null, wrap: null, border: null, decimals: null, numberFormat: "currency", fontColor: null, fillColor: null },
       { action: "compute", op: "sum", range: "D2:D49", target: "D50" },
       { action: "sort", range: "A1:D50", by: "C", order: "desc", hasHeader: true },
     ]);
@@ -25,8 +25,8 @@ describe("command schema", () => {
     ["lowercase range", { action: "copy", from: "c2:c50", to: "H2" }],
     ["sheet-qualified range", { action: "copy", from: "Sheet1!C2:C50", to: "H2" }],
     ["copy target is a range, not a cell", { action: "copy", from: "C2:C50", to: "H2:H50" }],
-    ["bad number format", { action: "format", range: "C2:C5", bold: null, italic: null, underline: null, fontSize: null, align: null, wrap: null, border: null, decimals: null, numberFormat: "money", fontColor: null, fillColor: null }],
-    ["colour name instead of hex", { action: "format", range: "C2:C5", bold: null, italic: null, underline: null, fontSize: null, align: null, wrap: null, border: null, decimals: null, numberFormat: null, fontColor: "red", fillColor: null }],
+    ["bad number format", { action: "format", range: "C2:C5", bold: null, italic: null, underline: null, strikethrough: null, fontSize: null, fontName: null, align: null, wrap: null, border: null, decimals: null, numberFormat: "money", fontColor: null, fillColor: null }],
+    ["colour name instead of hex", { action: "format", range: "C2:C5", bold: null, italic: null, underline: null, strikethrough: null, fontSize: null, fontName: null, align: null, wrap: null, border: null, decimals: null, numberFormat: null, fontColor: "red", fillColor: null }],
     ["bad op", { action: "compute", op: "stdev", range: "D2:D49", target: "D50" }],
     ["sort by a cell instead of a column", { action: "sort", range: "A1:D50", by: "C1", order: "desc", hasHeader: true }],
     ["missing hasHeader", { action: "sort", range: "A1:D50", by: "C", order: "desc" }],
@@ -47,7 +47,7 @@ describe("command schema", () => {
     expect(s.required).toEqual(["commands"]);
     expect(s.additionalProperties).toBe(false);
     const variants: any[] = s.properties.commands.items.anyOf ?? s.properties.commands.items.oneOf;
-    expect(variants.length).toBe(7);
+    expect(variants.length).toBe(13);
     for (const v of variants) {
       expect(v.additionalProperties).toBe(false);
       expect(v.required.sort()).toEqual(Object.keys(v.properties).sort());

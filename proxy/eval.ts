@@ -8,7 +8,9 @@ import path from "node:path";
 import { interpret, DEFAULT_MODEL, type SheetContext } from "./interpret.ts";
 import type { Command } from "./commands.ts";
 
-type Case = { id: string; type: string; transcript: string; expected: Command[]; source?: string };
+// alsoAccept: other answers that do exactly the same thing (e.g. decimals alone vs
+// numberFormat "number" + decimals). Listed per case, never inferred.
+type Case = { id: string; type: string; transcript: string; expected: Command[]; alsoAccept?: Command[][]; source?: string };
 type Suite = { context: SheetContext; cases: Case[] };
 
 const args = process.argv.slice(2);
@@ -49,7 +51,7 @@ for (let run = 1; run <= repeat; run++) {
     let pass = false;
     let reason = "";
     if (!r.ok) reason = `rejected: ${r.reason}`;
-    else if (norm(r.commands) !== norm(c.expected)) reason = `mismatch: got ${norm(r.commands)} expected ${norm(c.expected)}`;
+    else if (![c.expected, ...(c.alsoAccept ?? [])].some((e) => norm(r.commands) === norm(e))) reason = `mismatch: got ${norm(r.commands)} expected ${norm(c.expected)}`;
     else pass = true;
     rows.push({ run, id: c.id, type: c.type, pass, reason, ms: r.ms, got: r.ok ? r.commands : r.raw });
     if (!pass) console.log(`FAIL run${run} ${c.id} [${c.type}] "${c.transcript}"\n     ${reason}`);

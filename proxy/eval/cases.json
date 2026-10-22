@@ -49,7 +49,7 @@
     { "id": "format-12", "type": "format", "source": "synthetic 2026-10-21", "transcript": "wrap text in column A", "expected": [{ "action": "format", "range": "A2:A50", "wrap": true }] },
     { "id": "format-13", "type": "format", "source": "synthetic 2026-10-21", "transcript": "put a border around the whole table", "expected": [{ "action": "format", "range": "A1:D50", "border": "outline" }] },
     { "id": "format-14", "type": "format", "source": "synthetic 2026-10-21", "transcript": "add a line under the header row", "expected": [{ "action": "format", "range": "A1:D1", "border": "bottom" }] },
-    { "id": "format-15", "type": "format", "source": "synthetic 2026-10-21", "transcript": "show the prices with 1 decimal", "expected": [{ "action": "format", "range": "C2:C50", "decimals": 1 }] },
+    { "id": "format-15", "type": "format", "source": "synthetic 2026-10-21", "transcript": "show the prices with 1 decimal", "expected": [{ "action": "format", "range": "C2:C50", "decimals": 1 }], "alsoAccept": [[{ "action": "format", "range": "C2:C50", "numberFormat": "number", "decimals": 1 }]] },
     { "id": "format-16", "type": "format", "source": "synthetic 2026-10-21", "transcript": "format E2 to E50 as a date", "expected": [{ "action": "format", "range": "E2:E50", "numberFormat": "date" }] },
 
     { "id": "clear-01", "type": "clear", "source": "synthetic 2026-10-21", "transcript": "clear column D", "expected": [{ "action": "clear", "range": "D2:D50", "what": "contents" }] },
@@ -61,6 +61,25 @@
     { "id": "arith-09", "type": "arithmetic", "source": "synthetic 2026-10-21", "transcript": "round the prices to 2 decimals", "expected": [{ "action": "arithmetic", "range": "C2:C50", "op": "round", "value": 2 }] },
 
     { "id": "compute-07", "type": "compute", "source": "synthetic 2026-10-21", "transcript": "put the median quantity in F2", "expected": [{ "action": "compute", "op": "median", "range": "B2:B50", "target": "F2" }] },
+
+    { "id": "text-01", "type": "text", "source": "synthetic 2026-10-22", "transcript": "make column A uppercase", "expected": [{ "action": "text", "range": "A2:A50", "op": "upper" }] },
+    { "id": "text-02", "type": "text", "source": "synthetic 2026-10-22", "transcript": "capitalize the item names", "expected": [{ "action": "text", "range": "A2:A50", "op": "proper" }] },
+    { "id": "text-03", "type": "text", "source": "synthetic 2026-10-22", "transcript": "remove the extra spaces from column A", "expected": [{ "action": "text", "range": "A2:A50", "op": "trim" }] },
+
+    { "id": "replace-01", "type": "replace", "source": "synthetic 2026-10-22", "transcript": "replace N/A with 0 in column D", "expected": [{ "action": "replace", "range": "D2:D50", "find": "N/A", "replacement": 0 }] },
+
+    { "id": "series-01", "type": "series", "source": "synthetic 2026-10-22", "transcript": "number A2 to A20 starting from 1", "expected": [{ "action": "series", "range": "A2:A20", "kind": "number", "start": 1, "step": 1 }] },
+    { "id": "series-02", "type": "series", "source": "synthetic 2026-10-22", "transcript": "fill F2 to F13 with Jan to Dec", "expected": [{ "action": "series", "range": "F2:F13", "kind": "month", "start": 1, "step": 1 }] },
+
+    { "id": "highlight-01", "type": "highlight", "source": "synthetic 2026-10-22", "transcript": "highlight prices over 100 in yellow", "expected": [{ "action": "highlight", "range": "C2:C50", "test": "gt", "value": 100, "fillColor": "#FFFF00" }] },
+    { "id": "highlight-02", "type": "highlight", "source": "synthetic 2026-10-22", "transcript": "make negative totals red", "expected": [{ "action": "highlight", "range": "D2:D50", "test": "lt", "value": 0, "fontColor": "#FF0000" }] },
+
+    { "id": "format-17", "type": "format", "source": "synthetic 2026-10-22", "transcript": "strike through row 5", "expected": [{ "action": "format", "range": "A5:D5", "strikethrough": true }] },
+
+    { "id": "select-01", "type": "select", "source": "synthetic 2026-10-22", "transcript": "select column C", "expected": [{ "action": "select", "range": "C2:C50" }] },
+
+    { "id": "ask-01", "type": "ask", "source": "synthetic 2026-10-22", "transcript": "what's the total of column D", "expected": [{ "action": "ask", "op": "sum", "range": "D2:D50" }] },
+    { "id": "ask-02", "type": "ask", "source": "synthetic 2026-10-22", "transcript": "what's the highest price", "expected": [{ "action": "ask", "op": "max", "range": "C2:C50" }] },
 
     { "id": "none-01", "type": "none", "source": "synthetic", "transcript": "delete column B", "expected": [] },
     { "id": "none-02", "type": "none", "source": "synthetic", "transcript": "make F price times quantity", "expected": [] },

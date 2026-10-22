@@ -24,7 +24,9 @@ export const Format = z.object({
   bold: z.boolean().nullable(),
   italic: z.boolean().nullable(),
   underline: z.boolean().nullable(),
+  strikethrough: z.boolean().nullable(),
   fontSize: z.number().nullable(),
+  fontName: z.string().nullable(),
   align: z.enum(["left", "center", "right"]).nullable(),
   wrap: z.boolean().nullable(),
   border: z.enum(["all", "outline", "bottom", "none"]).nullable(),
@@ -72,7 +74,55 @@ export const SetValue = z.object({
   value: z.union([z.string(), z.number()]),
 });
 
-export const Command = z.discriminatedUnion("action", [Copy, Format, Compute, Sort, Arithmetic, Clear, SetValue]);
+// Change text in place: case, or tidy spaces.
+export const TextCase = z.object({
+  action: z.literal("text"),
+  range: Range,
+  op: z.enum(["upper", "lower", "proper", "trim"]),
+});
+
+// Find and replace inside a range. A cell equal to `find` becomes `replacement`;
+// inside longer text, the matching part is replaced.
+export const Replace = z.object({
+  action: z.literal("replace"),
+  range: Range,
+  find: z.string(),
+  replacement: z.union([z.string(), z.number()]),
+});
+
+// Fill a range with a series: 1, 2, 3... or Jan, Feb... or Mon, Tue...
+export const Series = z.object({
+  action: z.literal("series"),
+  range: Range,
+  kind: z.enum(["number", "month", "weekday"]),
+  start: z.number(), // number: first value; month: 1 = Jan; weekday: 1 = Mon
+  step: z.number(),
+});
+
+// Colour only the cells that pass a test. The test is evaluated in code.
+export const Highlight = z.object({
+  action: z.literal("highlight"),
+  range: Range,
+  test: z.enum(["gt", "ge", "lt", "le", "eq", "ne", "contains", "blank"]),
+  value: z.union([z.string(), z.number()]).nullable(),
+  fillColor: z.string().regex(HEX, "hex like #FFFF00").nullable(),
+  fontColor: z.string().regex(HEX, "hex like #FF0000").nullable(),
+});
+
+// Read-only: select cells, or answer a question about them in the panel.
+export const Select = z.object({
+  action: z.literal("select"),
+  range: Range,
+});
+export const Ask = z.object({
+  action: z.literal("ask"),
+  op: z.enum(["sum", "average", "min", "max", "count", "counta", "median"]),
+  range: Range,
+});
+
+export const Command = z.discriminatedUnion("action", [
+  Copy, Format, Compute, Sort, Arithmetic, Clear, SetValue, TextCase, Replace, Series, Highlight, Select, Ask,
+]);
 export const Response = z.object({ commands: z.array(Command) });
 
 export type Command = z.infer<typeof Command>;

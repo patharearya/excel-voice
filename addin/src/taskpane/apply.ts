@@ -3,7 +3,10 @@
 // add-in changes, so every command snapshots the cells it will change first and
 // Undo writes the snapshots back in reverse order.
 import type { Command } from "../../../proxy/commands.ts";
-import { touched, describe, formula, size, box, address, colNum, arithmetic, numberFormatCode } from "../../../proxy/plan.ts";
+import {
+  touched, describe, formula, size, box, address, colNum, arithmetic, numberFormatCode,
+  textCase, replaceIn, series, matches, answer,
+} from "../../../proxy/plan.ts";
 
 const EDGES = ["EdgeTop", "EdgeBottom", "EdgeLeft", "EdgeRight"] as const;
 
@@ -20,7 +23,8 @@ const LOAD: Excel.CellPropertiesLoadOptions = {
   },
 };
 
-type Snap = { address: string; formulas: any[][]; numberFormat: any[][]; props: Excel.CellProperties[][] };
+// `values` is read for commands that test what cells show (highlight); Undo restores `formulas`.
+type Snap = { address: string; formulas: any[][]; values: any[][]; numberFormat: any[][]; props: Excel.CellProperties[][] };
 export type Undo = { sheetId: string; snaps: Snap[]; done: string[] };
 
 export type SheetContext = { usedRange: string; headers: Record<string, string> };
@@ -53,6 +57,19 @@ export async function select(cmds: Command[]) {
   });
 }
 
+// Answers for ask commands, computed from the cells' current values. Nothing is written.
+export async function ask(cmds: Extract<Command, { action: "ask" }>[]): Promise<string[]> {
+  return Excel.run(async (ctx) => {
+    const sheet = ctx.workbook.worksheets.getActiveWorksheet();
+    const ranges = cmds.map((c) => sheet.getRange(touched(c)).load("values"));
+    await ctx.sync();
+    return cmds.map((c, i) => {
+      const a = answer(ranges[i].values, c.op);
+      return `${describe(c)}: ${a === null ? "no numbers there" : a.toLocaleString(undefined, { maximumFractionDigits: 4 })}`;
+    });
+  });
+}
+
 // Runs commands in order. On a failure it stops and returns the error together
 // with the snapshots taken so far, so the commands that did run can still be undone.
 export async function apply(cmds: Command[]): Promise<{ undo: Undo; error?: string }> {
@@ -63,6 +80,12 @@ export async function apply(cmds: Command[]): Promise<{ undo: Undo; error?: stri
     const undo: Undo = { sheetId: sheet.id, snaps: [], done: [] };
     for (const cmd of cmds) {
       try {
+        if (cmd.action === "select" || cmd.action === "ask") {
+          // Changes nothing: no snapshot, nothing for Undo.
+          sheet.getRange(touched(cmd)).select();
+          await ctx.sync();
+          continue;
+        }
         const snap = await snapshot(ctx, sheet, touched(cmd));
         undo.snaps.push(snap);
         run(sheet, cmd, snap);
@@ -86,10 +109,10 @@ export async function undo(u: Undo) {
 
 async function snapshot(ctx: Excel.RequestContext, sheet: Excel.Worksheet, addr: string): Promise<Snap> {
   const r = sheet.getRange(addr);
-  r.load("formulas,numberFormat");
+  r.load("formulas,values,numberFormat");
   const props = r.getCellProperties(LOAD);
   await ctx.sync();
-  return { address: addr, formulas: r.formulas, numberFormat: r.numberFormat, props: props.value };
+  return { address: addr, formulas: r.formulas, values: r.values, numberFormat: r.numberFormat, props: props.value };
 }
 
 function restore(sheet: Excel.Worksheet, s: Snap) {
@@ -132,6 +155,8 @@ function run(sheet: Excel.Worksheet, cmd: Command, snap: Snap) {
       if (cmd.bold !== null) r.format.font.bold = cmd.bold;
       if (cmd.italic !== null) r.format.font.italic = cmd.italic;
       if (cmd.underline !== null) r.format.font.underline = cmd.underline ? "Single" : "None";
+      if (cmd.strikethrough !== null) r.format.font.strikethrough = cmd.strikethrough;
+      if (cmd.fontName) r.format.font.name = cmd.fontName;
       if (cmd.fontSize !== null) r.format.font.size = cmd.fontSize;
       if (cmd.align) r.format.horizontalAlignment = ({ left: "Left", center: "Center", right: "Right" } as const)[cmd.align];
       if (cmd.wrap !== null) r.format.wrapText = cmd.wrap;
@@ -147,6 +172,28 @@ function run(sheet: Excel.Worksheet, cmd: Command, snap: Snap) {
     case "clear":
       r.clear(({ contents: "Contents", formats: "Formats", all: "All" } as const)[cmd.what]);
       break;
+    case "text":
+      r.formulas = textCase(snap.formulas, cmd.op) as any[][];
+      break;
+    case "replace":
+      r.formulas = replaceIn(snap.formulas, cmd) as any[][];
+      break;
+    case "series":
+      r.values = series(cmd);
+      break;
+    case "highlight":
+      matches(snap.values, cmd).forEach((row, i) =>
+        row.forEach((hit, j) => {
+          if (!hit) return;
+          const cell = r.getCell(i, j);
+          if (cmd.fillColor) cell.format.fill.color = cmd.fillColor;
+          if (cmd.fontColor) cell.format.font.color = cmd.fontColor;
+        })
+      );
+      break;
+    case "select":
+    case "ask":
+      break; // handled in apply(), never snapshotted
     case "set": {
       const { rows, cols } = size(cmd.range);
       r.values = Array.from({ length: rows }, () => Array(cols).fill(cmd.value));

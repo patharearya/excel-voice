@@ -1,9 +1,9 @@
 import { describe as group, it, expect } from "vitest";
-import { colNum, colName, box, touched, formula, describe, problem, arithmetic, numberFormatCode } from "./plan.ts";
+import { colNum, colName, box, touched, formula, describe, problem, arithmetic, numberFormatCode, textCase, replaceIn, series, matches, answer, readOnly } from "./plan.ts";
 import type { Command } from "./commands.ts";
 
 const fmt = (range: string, f: Partial<Extract<Command, { action: "format" }>>): Command => ({
-  action: "format", range, bold: null, italic: null, underline: null, fontSize: null, align: null, wrap: null, border: null, decimals: null, numberFormat: null, fontColor: null, fillColor: null, ...f,
+  action: "format", range, bold: null, italic: null, underline: null, strikethrough: null, fontSize: null, fontName: null, align: null, wrap: null, border: null, decimals: null, numberFormat: null, fontColor: null, fillColor: null, ...f,
 });
 
 group("columns", () => {
@@ -111,5 +111,68 @@ group("batch 2: format options, clear, set, round, more compute", () => {
   it("maps the new compute ops to Excel functions", () => {
     expect(formula({ action: "compute", op: "counta", range: "A2:A50", target: "A52" })).toBe("=COUNTA(A2:A50)");
     expect(formula({ action: "compute", op: "median", range: "B2:B50", target: "B51" })).toBe("=MEDIAN(B2:B50)");
+  });
+});
+
+group("batch 3: text, replace, series, highlight, select, ask", () => {
+  it("changes text case and spacing, leaving numbers, formulas and blanks", () => {
+    const cells = [["  hello   world "], ["MARY o'neil"], [12], ["=A1"], [""]];
+    expect(textCase(cells, "upper")).toEqual([["  HELLO   WORLD "], ["MARY O'NEIL"], [12], ["=A1"], [""]]);
+    expect(textCase(cells, "proper")).toEqual([["  Hello   World "], ["Mary O'neil"], [12], ["=A1"], [""]]);
+    expect(textCase(cells, "trim")).toEqual([["hello world"], ["MARY o'neil"], [12], ["=A1"], [""]]);
+  });
+
+  it("replaces whole cells with the typed value and parts of text as text", () => {
+    const cmd = { action: "replace", range: "D2:D5", find: "n/a", replacement: 0 } as const;
+    expect(replaceIn([["N/A"], ["see N/A note"], ["=IF(A1,\"N/A\",1)"], [5]], cmd)).toEqual([[0], ["see 0 note"], ["=IF(A1,\"N/A\",1)"], [5]]);
+    // regex characters in `find` are literal
+    expect(replaceIn([["a.b"], ["axb"]], { ...cmd, find: "a.b", replacement: "ok" })).toEqual([["ok"], ["axb"]]);
+    expect(problem({ ...cmd, find: "" })).toMatch(/nothing to find/);
+  });
+
+  it("fills series down columns, across a single row, and wraps months", () => {
+    expect(series({ action: "series", range: "A2:A5", kind: "number", start: 1, step: 1 })).toEqual([[1], [2], [3], [4]]);
+    expect(series({ action: "series", range: "B1:E1", kind: "month", start: 11, step: 1 })).toEqual([["Nov", "Dec", "Jan", "Feb"]]);
+    expect(series({ action: "series", range: "C1:C3", kind: "number", start: 0.1, step: 0.2 })).toEqual([[0.1], [0.3], [0.5]]);
+    expect(series({ action: "series", range: "A1:A2", kind: "weekday", start: 7, step: 1 })).toEqual([["Sun"], ["Mon"]]);
+    expect(problem({ action: "series", range: "A1:A9", kind: "number", start: 1, step: 0 })).toMatch(/step of 0/);
+  });
+
+  it("highlights only cells that pass the test", () => {
+    const h = { action: "highlight", range: "C2:C6", test: "gt", value: 100, fillColor: "#FFFF00", fontColor: null } as const;
+    const vals = [[150], [100], ["200"], [""], [99.5]];
+    expect(matches(vals, h)).toEqual([[true], [false], [false], [false], [false]]);
+    expect(matches(vals, { ...h, test: "lt", value: 0 })).toEqual([[false], [false], [false], [false], [false]]);
+    expect(matches([["Apple pie"], ["banana"], [""]], { ...h, test: "contains", value: "APPLE" })).toEqual([[true], [false], [false]]);
+    expect(matches([["Done"], ["done"], ["x"]], { ...h, test: "eq", value: "done" })).toEqual([[true], [true], [false]]);
+    expect(matches([[1], [""]], { ...h, test: "blank", value: null })).toEqual([[false], [true]]);
+    // Empty cells never match "not equal": "highlight what isn't Done" must not paint blanks.
+    expect(matches([["Done"], ["Open"], [""]], { ...h, test: "ne", value: "done" })).toEqual([[false], [true], [false]]);
+    expect(problem({ ...h, fillColor: null })).toMatch(/no colour/);
+    expect(problem({ ...h, value: "lots" })).toMatch(/not a number/);
+    expect(describe(h)).toBe("Highlight cells in C2:C6 that are over 100: fill #FFFF00");
+  });
+
+  it("answers questions the way Excel's functions would", () => {
+    const vals = [[10], [20], ["x"], [""], [30], [40]];
+    expect(answer(vals, "sum")).toBe(100);
+    expect(answer(vals, "average")).toBe(25);
+    expect(answer(vals, "median")).toBe(25);
+    expect(answer([[3], [1], [2]], "median")).toBe(2);
+    expect(answer(vals, "count")).toBe(4);
+    expect(answer(vals, "counta")).toBe(5);
+    expect(answer([["a"]], "max")).toBeNull();
+    expect(describe({ action: "ask", op: "sum", range: "D2:D50" })).toBe("Total of D2:D50");
+  });
+
+  it("marks select and ask as read-only, nothing else", () => {
+    expect(readOnly({ action: "select", range: "C1" })).toBe(true);
+    expect(readOnly({ action: "ask", op: "max", range: "C2:C9" })).toBe(true);
+    expect(readOnly({ action: "set", range: "C1", value: 1 })).toBe(false);
+  });
+
+  it("describes strikethrough and font name, and refuses odd font names", () => {
+    expect(describe(fmt("A5:D5", { strikethrough: true, fontName: "Arial" }))).toBe("Format A5:D5: strikethrough, font Arial");
+    expect(problem(fmt("A1", { fontName: "<script>" }))).toMatch(/not a font name/);
   });
 });

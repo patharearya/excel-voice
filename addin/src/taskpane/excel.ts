@@ -3,8 +3,8 @@
 // Task pane: mic (or typed text) -> proxy /transcribe -> proxy /interpret ->
 // preview (cells selected, nothing changed) -> Apply / Cancel -> Undo.
 import type { Command } from "../../../proxy/commands.ts";
-import { describe, problem } from "../../../proxy/plan.ts";
-import { sheetContext, select, apply, undo, type Undo } from "./apply";
+import { describe, problem, readOnly } from "../../../proxy/plan.ts";
+import { sheetContext, select, apply, undo, ask, type Undo } from "./apply";
 
 // Served from localhost (npm start) -> the local proxy; served from GitHub Pages
 // -> the hosted proxy on Render. Render's URL is set in render.yaml's service name.
@@ -250,6 +250,7 @@ async function understand(text: string) {
   if (rec) return;
   showTranscript(text);
   clearPreview();
+  $("answer").hidden = true;
   if (!inExcel) return status("Not running inside Excel: commands can't be applied here.", "warn");
   busy = true;
   status("Working out what to change", "busy");
@@ -277,10 +278,29 @@ async function understand(text: string) {
       showPreview(r.commands, true);
       return status(`Can't do this safely: ${issues.join("; ")}.`, "error");
     }
-    showPreview(r.commands, false);
+    // Questions are answered now, and selecting needs no approval: neither changes anything.
+    const asks = r.commands.filter((c: Command) => c.action === "ask");
+    const changes: Command[] = r.commands.filter((c: Command) => c.action !== "ask");
+    if (asks.length) {
+      try {
+        showAnswer(await ask(asks));
+      } catch (e: any) {
+        diag(`ask failed: ${e?.message}`);
+        return status(`Couldn't read those cells: ${e?.message}`, "error");
+      }
+    }
+    if (changes.every(readOnly)) {
+      try {
+        await select(r.commands);
+      } catch (e: any) {
+        diag(`select failed: ${e?.message}`);
+      }
+      return status(asks.length ? "Nothing was changed." : `Selected ${changes.map(describe).join(", ").replace(/Select /g, "")}.`, "ok");
+    }
+    showPreview(changes, false);
     status("Check the selected cells, then apply.", "ok");
     try {
-      await select(r.commands);
+      await select(changes);
     } catch (e: any) {
       diag(`select failed: ${e?.message}`);
     }
@@ -288,6 +308,11 @@ async function understand(text: string) {
   } finally {
     busy = false;
   }
+}
+
+function showAnswer(lines: string[]) {
+  $("answer").textContent = lines.join("\n");
+  $("answer").hidden = false;
 }
 
 function showTranscript(text: string) {

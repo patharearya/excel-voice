@@ -24,15 +24,21 @@ would rather say what they want than click through it.
 
 | Kind | Examples |
 |---|---|
-| **Format** | "Bold the header row", "Underline A1 to D1", "Make A1 font size 14", "Center column B", "Wrap text in column A", "Make the total column red", "Highlight B2 to B10 yellow" |
+| **Format** | "Bold the header row", "Underline A1 to D1", "Strike through row 5", "Make the table Arial", "Make A1 font size 14", "Center column B", "Wrap text in column A", "Make the total column red", "Highlight B2 to B10 yellow" |
+| **Highlight by rule** | "Highlight prices over 100 in yellow", "Make negative totals red", "Highlight empty cells in column B" (only the matching cells change) |
 | **Borders** | "Put a border around the whole table", "Add a line under the header row", "Put borders on every cell in A1 to D10", "Remove the borders from column C" |
 | **Number formats** | "Make the price column currency", "Format D2 to D50 as a percent", "Show the prices with 1 decimal", "Format column E as a date" |
 | **Calculate** | "Total column D at the bottom", "Average the price column into C51", "Put the median quantity in F2", "Count the items in column A" (writes a live formula: SUM, AVERAGE, MIN, MAX, MEDIAN, COUNT or COUNTA) |
 | **Change numbers** | "Double column B", "Add 10 to C2 through C20", "Increase the prices by 10 percent", "Round the prices to 2 decimals" |
+| **Text** | "Make column A uppercase", "Capitalize the item names", "Remove the extra spaces from column A" |
+| **Find and replace** | "Replace N/A with 0 in column D" |
+| **Fill a series** | "Number A2 to A20 starting from 1", "Fill F2 to F13 with Jan to Dec" |
 | **Clear** | "Clear column D" (values only), "Remove the formatting from the header row" |
 | **Type a value** | "Put 0 in B2 through B10", "Write Done in E5" |
 | **Sort** | "Sort by price, high to low", "Sort the table by quantity ascending" |
 | **Copy** | "Copy column C to column H", "Copy A2 through A10 to B2" |
+| **Ask** | "What's the total of column D?", "What's the highest price?", "How many items are there?" (answered in the panel; nothing changes) |
+| **Select** | "Select column C", "Go to D50" |
 
 You can combine commands in one sentence ("make column C currency and bold the
 header row"). Columns can be named by letter or by their header ("the price
