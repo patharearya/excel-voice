@@ -386,7 +386,9 @@ extra read. Not covered: "double B and change price and total accordingly"
   re-run sat queued ~10 min on GitHub's side before succeeding.
 - Open: placeholder "Logo" icon from the template shows in the Add-ins list.
 - Icon: replaced the template "Logo" icons with a white mic on Excel green
-  (#107c41), faint "AP" initials bottom-right at 64 px and up only (illegible
+  (#107c41), "AP" initials bottom-right at 64 px and up only (illegible
   below). Source assets/icon.svg; PNGs rendered with headless Edge
   (--default-background-color=00000000 for transparency), sizes and RGBA
   checked from the PNG headers. Removed unused template logo-filled.png.
+- Initials were too faint to read at the size Excel shows (user: "doesn't have
+  my initials"). Raised from 15 px / 42% opacity to 22 px bold / 70%.
