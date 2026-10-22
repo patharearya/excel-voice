@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "brag-output/work/video.html"
+        ],
+        "createdAt": "2026-10-22T23:07:24.672Z",
+        "reason": "Claude decided: mock Excel grid cells and row/column headers are flush by design to mimic Excel; build-only page for the launch video, not shipped in the add-in"
+      }
+    ]
+  }
+}

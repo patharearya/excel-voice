@@ -1,0 +1,216 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--bg:#dae6f7;--ink:#1a2638;--muted:#475a75;--line:#b4c6e0;--green:#107c41;--sel:#107c41}
+*{box-sizing:border-box}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--bg);font-family:"Segoe UI",sans-serif;color:var(--ink)}
+#stage{position:absolute;inset:0;background:radial-gradient(1400px 900px at 50% 30%,#e6eefa,#cfdcf0)}
+#viewport{position:absolute;left:0;top:0;width:1920px;height:880px;overflow:hidden}
+#cam{position:absolute;left:0;top:0;width:1700px;height:820px;transform-origin:0 0}
+#win{position:absolute;inset:0;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 30px 80px rgba(26,38,56,.28),0 0 0 1px rgba(26,38,56,.12)}
+.title{height:32px;background:var(--green);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;position:relative}
+.title .dots{position:absolute;right:14px;top:9px;display:flex;gap:18px}
+.title .dots i{width:12px;height:12px;border:1.5px solid rgba(255,255,255,.8);display:block;border-radius:2px}
+.tabs{height:30px;background:#f3f3f3;display:flex;gap:22px;align-items:end;padding:0 16px;font-size:13px;color:#333}
+.tabs span{padding-bottom:6px}
+.tabs .on{color:var(--green);font-weight:600;border-bottom:3px solid var(--green);padding-bottom:3px}
+.ribbon{height:86px;background:#f9f9f9;border-bottom:1px solid #ddd;display:flex;padding:8px 10px;gap:8px}
+.grp{border-right:1px solid #e1e1e1;padding:0 12px;display:flex;flex-direction:column;justify-content:space-between;align-items:center}
+.grp .ic{display:flex;gap:6px}
+.grp .ic b{width:26px;height:26px;border-radius:4px;background:#e9edf2;display:block}
+.grp small{font-size:11px;color:#666}
+.voicebtn{display:flex;flex-direction:column;align-items:center;font-size:11px;gap:2px;padding:2px 8px;border-radius:4px}
+.voicebtn img{width:36px;height:36px}
+.fbar{position:absolute;left:0;top:148px;width:1340px;height:30px;border-bottom:1px solid #ddd;display:flex;align-items:center;font:14px Calibri,"Segoe UI",sans-serif}
+.fbar .nb{width:90px;border-right:1px solid #ddd;height:100%;display:flex;align-items:center;padding-left:8px}
+.fbar .fx{color:#5c5c5c;font-style:italic;padding:0 12px;border-right:1px solid #ddd}
+.fbar .fv{padding-left:10px}
+#grid{position:absolute;left:0;top:178px;width:1340px;height:618px;overflow:hidden;font:17px Calibri,"Segoe UI",sans-serif}
+.c{position:absolute;height:30px;line-height:30px;padding:0 8px;border-right:1px solid #e1e1e1;border-bottom:1px solid #e1e1e1;white-space:nowrap;overflow:hidden}
+.hd{background:#f3f3f3;color:#555;text-align:center;font-size:14px;padding:0}
+.num{text-align:right}
+.selbox{position:absolute;border:2px solid var(--sel);background:rgba(16,124,65,.10);pointer-events:none}
+.status{position:absolute;left:0;bottom:0;width:100%;height:24px;background:#f3f3f3;border-top:1px solid #ddd;font-size:12px;color:#555;padding:4px 12px}
+#pane{position:absolute;left:1340px;top:148px;width:360px;height:648px;border-left:1px solid #ccc;background:#dae6f7}
+#pane .ph{height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:15px;font-weight:600;background:#fff;border-bottom:1px solid #ddd}
+#pane iframe{border:0;width:360px;height:612px;display:block}
+#cursor{position:absolute;width:26px;height:38px;left:0;top:0;z-index:9;pointer-events:none}
+.ripple{position:absolute;width:60px;height:60px;border-radius:50%;border:3px solid var(--green);margin:-30px 0 0 -30px;z-index:8;opacity:0}
+#cap{position:absolute;left:0;top:880px;width:1920px;height:200px;display:flex;align-items:center;justify-content:center;font-size:66px;font-weight:600;letter-spacing:-.5px}
+#cap span{display:inline-block}
+.full{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
+#hookA{background:var(--bg)}
+#hookA .t{font-size:170px;font-weight:700;letter-spacing:-4px;position:relative;z-index:2}
+#chips{position:absolute;inset:0}
+.chip{position:absolute;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 18px;font-size:22px;color:var(--muted)}
+#hookB{background:var(--green);color:#fff}
+#hookB .t{font-size:170px;font-weight:700;letter-spacing:-4px;margin-top:30px}
+.ring{position:absolute;border:4px solid rgba(255,255,255,.5);border-radius:50%}
+#outro{background:radial-gradient(1400px 900px at 50% 40%,#e6eefa,#cfdcf0)}
+#outro img{width:200px;height:200px}
+#outro .n{font-size:130px;font-weight:700;letter-spacing:-3px;margin-top:20px}
+#outro .s{font-size:40px;color:var(--muted);margin-top:4px}
+#outro .u{font-size:34px;margin-top:40px;color:var(--green);font-weight:600;border:2px solid var(--green);border-radius:999px;padding:10px 30px}
+</style></head><body>
+<div id="stage">
+  <div id="viewport"><div id="cam">
+    <div id="win">
+      <div class="title">Office supplies.xlsx - Excel<div class="dots"><i></i><i></i><i></i></div></div>
+      <div class="tabs"><span>File</span><span class="on">Home</span><span>Insert</span><span>Page Layout</span><span>Formulas</span><span>Data</span><span>Review</span><span>View</span></div>
+      <div class="ribbon">
+        <div class="grp"><div class="ic"><b></b><b></b></div><small>Clipboard</small></div>
+        <div class="grp"><div class="ic"><b style="width:120px"></b><b></b><b></b><b></b></div><small>Font</small></div>
+        <div class="grp"><div class="ic"><b></b><b></b><b></b><b></b></div><small>Alignment</small></div>
+        <div class="grp"><div class="ic"><b style="width:90px"></b><b></b></div><small>Number</small></div>
+        <div class="grp"><div class="ic"><b></b><b></b><b></b></div><small>Styles</small></div>
+        <div class="grp"><div class="ic"><b></b><b></b></div><small>Cells</small></div>
+        <div style="flex:1"></div>
+        <div class="grp" style="border-right:0;border-left:1px solid #e1e1e1"><div class="voicebtn" id="vbtn"><img src="icon.svg"><span>Excel Voice</span></div><small>Voice</small></div>
+      </div>
+      <div class="fbar"><div class="nb" id="nb">A1</div><div class="fx">fx</div><div class="fv" id="fv">Item</div></div>
+      <div id="grid"></div>
+      <div id="pane"><div class="ph"><span>Excel Voice</span><span style="font-weight:400;color:#666">✕</span></div><iframe id="pf" src="panel.html"></iframe></div>
+      <div class="status">Ready</div>
+    </div>
+    <div class="ripple" id="rip"></div>
+    <svg id="cursor" viewBox="0 0 26 38"><path d="M2 2 L2 30 L9 23.5 L14 35 L19 33 L14 21.5 L23 21.5 Z" fill="#fff" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>
+  </div></div>
+  <div id="cap"><span id="capt"></span></div>
+</div>
+<div id="hookA" class="full"><div id="chips"></div><div class="t" id="hat">Stop clicking.</div><svg id="hcur" viewBox="0 0 26 38" style="position:absolute;width:40px;height:58px;z-index:3"><path d="M2 2 L2 30 L9 23.5 L14 35 L19 33 L14 21.5 L23 21.5 Z" fill="#fff" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg></div>
+<div id="hookB" class="full"><div id="rings"></div>
+  <svg id="bmic" width="190" height="190" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3" fill="#fff"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg>
+  <div class="t" id="hbt">Talk to Excel.</div></div>
+<div id="outro" class="full"><img id="oi" src="icon.svg"><div class="n" id="on">Excel Voice</div><div class="s" id="os">Free · Desktop Excel on Windows · One-file install</div><div class="u" id="ou">patharearya.github.io/excel-voice</div></div>
+<script>
+const $=id=>document.getElementById(id);
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const ease=x=>{x=clamp(x);return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2};
+const out=x=>1-Math.pow(1-clamp(x),3);
+const back=x=>{x=clamp(x);const c=1.6;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const prog=(t,a,b)=>clamp((t-a)/(b-a));
+const lerp=(a,b,k)=>a+(b-a)*k;
+
+// ---- grid (fictional data) ----
+const COLS=[["",50],["A",220],["B",110],["C",140],["D",150],["E",130],["F",130],["G",130],["H",130],["I",150]];
+const X=[];{let x=0;for(const c of COLS){X.push(x);x+=c[1]}}
+const ROWH=30,HDR=26;
+const ROWS=[["Item","Qty","Price","Total"],["Notebooks",40,3.5,140],["Pens",120,1.2,144],["Desk lamp",6,48,288],["Monitor",4,189,756],["Chair",5,139,695],["Keyboard",8,75,600],["Webcam",3,112,336],["Headset",6,95,570]];
+const grid=$("grid"),cells={};
+function cell(ci,ri,cls){const d=document.createElement("div");d.className="c "+(cls||"");d.style.left=X[ci]+"px";d.style.width=COLS[ci][1]+"px";d.style.top=(ri===0?0:HDR+(ri-1)*ROWH)+"px";if(ri===0)d.style.height=HDR+"px",d.style.lineHeight=HDR+"px";grid.appendChild(d);return d}
+for(let ci=0;ci<COLS.length;ci++)cell(ci,0,"hd").textContent=COLS[ci][0];
+for(let r=1;r<=20;r++){cell(0,r,"hd").textContent=r;for(let ci=1;ci<COLS.length;ci++)cells[COLS[ci][0]+r]=cell(ci,r)}
+const rc=(ref)=>{const col=ref[0],row=+ref.slice(1);const ci=COLS.findIndex(c=>c[0]===col);return{x:X[ci],y:HDR+(row-1)*ROWH,w:COLS[ci][1]}};
+function box(a,b){const p=rc(a),q=rc(b);return{x:p.x,y:p.y,w:q.x+q.w-p.x,h:q.y+ROWH-p.y}}
+const sels=[0,1].map(()=>{const d=document.createElement("div");d.className="selbox";grid.appendChild(d);return d});
+function setSel(i,b){const d=sels[i];if(!b){d.style.display="none";return}d.style.display="block";Object.assign(d.style,{left:b.x-1+"px",top:b.y-1+"px",width:b.w+1+"px",height:b.h+1+"px"})}
+
+function drawGrid(st){
+  ROWS.forEach((row,ri)=>row.forEach((v,ci)=>{
+    const c=cells["ABCD"[ci]+(ri+1)];let txt=v;
+    if(ci===2&&ri>0&&st.currency)txt="$"+v.toFixed(2);
+    c.textContent=txt;c.className="c"+(typeof v==="number"?" num":"");
+    c.style.fontWeight=ri===0&&st.bold?"700":"400";
+    c.style.background=(ci===2&&ri>0&&v>100&&st.yellow)?"#ffff00":"";
+  }));
+  const d10=cells.D10;d10.className="c num";d10.textContent=st.sum?"3529":"";d10.style.fontWeight="400";
+}
+
+// ---- timeline ----
+const CAPS=[[2.8,6.4,"Just say it."],[6.4,9.4,"Nothing changes until you approve it."],[9.4,11.4,"Press Enter. Done."],[11.4,13.6,"A real formula, not a pasted number."],[13.6,15.6,"Rules, not just ranges."],[15.6,17.8,"One-step Undo. Because Ctrl+Z can't."]];
+// camera: [t, scale, cx, cy] (window point placed at viewport center)
+const CAM=[[2.8,1.04,860,412],[3.25,1.04,860,412],[3.9,1.6,1420,280],[6.2,1.6,1420,280],[6.9,1.04,860,412],[11.3,1.04,860,412],[11.8,1.12,857,380],[13.5,1.12,857,380],[14.0,1.04,860,412],[17.8,1.04,860,412]];
+// cursor in window coords: [t,x,y]
+const CUR=[[2.8,900,560],[3.3,1585,222],[3.4,1585,222],[4.6,1585,222],[4.85,1588,220],[5.2,1610,360],[8.9,1610,360],[9.25,1442,512],[11.2,1442,512],[11.5,1560,287],[13.6,1560,287],[13.95,1585,222],[15.3,1560,420],[15.95,1657,615],[17.8,1657,615]];
+const CLICKS=[3.4,4.85,13.95,16.0];
+
+function track(K,t){if(t<=K[0][0])return K[0].slice(1);for(let i=1;i<K.length;i++)if(t<K[i][0]){const k=ease((t-K[i-1][0])/(K[i][0]-K[i-1][0]));return K[i].slice(1).map((v,j)=>lerp(K[i-1][j+1],v,k))}return K[K.length-1].slice(1)}
+const noise=t=>.5+.5*Math.sin(t*23.1)*Math.sin(t*7.3+1)*Math.cos(t*13.7);
+
+let P;
+function panel(t){
+  const D=P.document,q=id=>D.getElementById(id);
+  const S={rec:false,label:"Speak",meter:false,lvl:0,transcript:"",status:"Ready",tone:"idle",preview:null,examples:true,last:null,typed:"",press:null};
+  const say1="make column C currency and bold the header row",say2="Highlight prices over 100 in yellow",typ="Total column D at the bottom";
+  if(t>=3.4&&t<4.85){S.rec=true;S.label="Stop";S.meter=true;S.lvl=.25+.6*noise(t);S.status="Listening. Click Stop when you're done";S.tone="busy"}
+  if(t>=4.85&&t<5.15){S.status="Transcribing";S.tone="busy"}
+  if(t>=5.15&&t<9.45){S.transcript=say1;S.status="Working out what to change";S.tone="busy"}
+  if(t>=6.4&&t<9.45){S.status="Check the selected cells, then apply.";S.tone="ok";S.examples=false;S.preview=["Format C2:C9: currency","Format A1:D1: bold"]}
+  if(t>=9.25&&t<9.45)S.press="apply";
+  const L1="Format C2:C9: currency; Format A1:D1: bold";
+  if(t>=9.45){S.transcript=say1;S.status="Applying";S.tone="busy"}
+  if(t>=9.7){S.status="Done.";S.tone="ok";S.last=L1}
+  if(t>=11.5){S.transcript="";const n=Math.floor(prog(t,11.5,12.3)*typ.length);S.typed=typ.slice(0,n)}
+  if(t>=12.4){S.typed="";S.status="Working out what to change";S.tone="busy"}
+  if(t>=12.7){S.examples=false;S.preview=["D10 =SUM(D2:D9)"];S.status="Check the selected cells, then apply.";S.tone="ok"}
+  if(t>=13.0&&t<13.15)S.press="apply";
+  if(t>=13.15){S.preview=null;S.examples=true;S.status="Done.";S.last="D10 =SUM(D2:D9)"}
+  if(t>=13.95&&t<14.5){S.rec=true;S.label="Stop";S.meter=true;S.lvl=.25+.6*noise(t);S.status="Listening. Click Stop when you're done";S.tone="busy"}
+  if(t>=14.5){S.transcript=say2;S.status="Working out what to change";S.tone="busy"}
+  if(t>=14.8){S.examples=false;S.preview=["Highlight cells in C2:C9 that are over 100: fill yellow"];S.status="Check the selected cells, then apply.";S.tone="ok"}
+  if(t>=15.1&&t<15.25)S.press="apply";
+  const L3="Highlight cells in C2:C9 that are over 100: fill yellow";
+  if(t>=15.25){S.preview=null;S.examples=true;S.status="Done.";S.last=L3}
+  if(t>=15.9&&t<16.0)S.press="undo";
+  if(t>=16.0){S.status="Undone. The cells are back to how they were.";S.last=null;S.transcript=say2}
+  // apply to real panel DOM
+  const rb=q("record");if(S.rec)rb.setAttribute("data-recording","");else rb.removeAttribute("data-recording");
+  q("record-label").textContent=S.label;q("meter").hidden=!S.meter;q("level").style.transform=`scaleX(${S.lvl})`;
+  q("transcript").hidden=!S.transcript;
+  if(S.transcript){const k=t<9?prog(t,5.15,5.6):t>=14.5&&t<16?prog(t,14.5,14.8):1;q("transcript").textContent=S.transcript.slice(0,Math.ceil(k*S.transcript.length))}
+  q("status").textContent=S.status;q("status").dataset.tone=S.tone;
+  q("preview").hidden=!S.preview;if(S.preview)q("changes").innerHTML=S.preview.map(s=>`<li>${s}</li>`).join("");
+  q("examples").hidden=!S.examples;
+  q("last-bar").hidden=!S.last;if(S.last)q("last").textContent=S.last;
+  q("typed").value=S.typed;
+  q("apply").classList.toggle("press",S.press==="apply");q("undo").classList.toggle("press",S.press==="undo");
+  rb.classList.toggle("press",CLICKS.some(c=>t>=c-.08&&t<c+.04));
+}
+
+function render(t){
+  // sheet state
+  const st={currency:t>=9.7,bold:t>=9.7,sum:t>=13.15,yellow:t>=15.25&&t<16.0};
+  drawGrid(st);
+  setSel(0,null);setSel(1,null);
+  let nb="A1",fv="Item";
+  if(t>=6.4&&t<9.7){setSel(0,box("C2","C9"));setSel(1,box("A1","D1"));nb="A1";fv="Item"}
+  else if(t>=12.7&&t<14.8){setSel(0,box("D10","D10"));nb="D10";fv=st.sum?"=SUM(D2:D9)":""}
+  else if(t>=14.8&&t<17.8){setSel(0,box("C2","C9"));nb="C2";fv=st.currency?"3.5":"3.5"}
+  $("nb").textContent=nb;$("fv").textContent=fv;
+  panel(t);
+  // camera + window entrance
+  const [s,cx,cy]=track(CAM,t);const enter=out(prog(t,2.75,3.25));const leave=ease(prog(t,17.8,18.2));
+  const ss=s*(1-.15*leave);
+  $("cam").style.transform=`translate(${960-cx*ss}px,${440-cy*ss+(1-enter)*500}px) scale(${ss})`;
+  $("cam").style.opacity=1-leave;
+  // cursor
+  const [mx,my]=track(CUR,t);$("cursor").style.transform=`translate(${mx}px,${my}px)`;$("cursor").style.opacity=t>=3.0&&t<17.6?1:0;
+  const lc=CLICKS.filter(c=>t>=c).pop();const rk=lc==null?1:(t-lc)/.35;const rp=$("rip");
+  if(rk<1){const [rx,ry]=track(CUR,lc);rp.style.left=rx+"px";rp.style.top=ry+"px";rp.style.opacity=1-rk;rp.style.transform=`scale(${.3+rk})`}else rp.style.opacity=0;
+  // caption: old out (0.15s), then new in
+  const c=CAPS.find(c=>t>=c[0]&&t<c[1]);const ce=$("capt");
+  if(c){const kin=out(prog(t,c[0]+.12,c[0]+.4)),kout=prog(t,c[1]-.12,c[1]);ce.textContent=c[2];ce.style.opacity=kin*(1-kout);ce.style.transform=`translateY(${(1-kin)*24}px)`}else ce.style.opacity=0;
+  // hook A
+  const A=$("hookA");A.style.display=t<1.4?"flex":"none";
+  if(t<1.4){const i=Math.floor(t/.13);const ch=[...$("chips").children];ch.forEach((e,j)=>e.style.opacity=.55+(j===i%ch.length?.45:0));
+    const e=ch[i%ch.length];$("hcur").style.left=(e.offsetLeft+e.offsetWidth/2)+"px";$("hcur").style.top=(e.offsetTop+e.offsetHeight/2)+"px";
+    const k=out(prog(t,0,.3));$("hat").style.transform=`scale(${.92+.08*k})`;$("hat").style.opacity=k}
+  // hook B
+  const B=$("hookB");const bOff=ease(prog(t,2.6,2.9));B.style.display=t>=1.4&&t<2.9?"flex":"none";
+  if(t>=1.4){const k=back(prog(t,1.4,1.75));$("bmic").style.transform=`scale(${.6+.4*k})`;$("hbt").style.opacity=out(prog(t,1.45,1.7));$("hbt").style.transform=`translateY(${(1-out(prog(t,1.45,1.75)))*30}px)`;
+    B.style.transform=`translateY(${-bOff*100}%)`;
+    $("rings").innerHTML=[0,1,2].map(j=>{const p=((t-1.4)/0.9+j/3)%1;const r=120+p*420;return `<div class="ring" style="width:${r*2}px;height:${r*2}px;left:${960-r}px;top:${470-r}px;opacity:${.6*(1-p)}"></div>`}).join("")}
+  // outro
+  const O=$("outro");O.style.display=t>=18.0?"flex":"none";O.style.opacity=out(prog(t,18.0,18.3));
+  $("oi").style.transform=`scale(${.5+.5*back(prog(t,18.1,18.5))})`;
+  [["on",18.35],["os",18.6],["ou",18.9]].forEach(([id,a])=>{const k=out(prog(t,a,a+.35));$(id).style.opacity=k;$(id).style.transform=`translateY(${(1-k)*26}px)`});
+}
+
+// hook chips: the clicking we're replacing
+const CH=["Home","Format Cells…","Number","Currency","Bold","Fill Color","Sort & Filter","Custom Sort…","AutoSum","Conditional Formatting","Highlight Cells Rules","Greater Than…","Paste Special","Font Size","Borders","Merge & Center","Wrap Text","Find & Select"];
+const pos=[[160,140],[520,110],[900,150],[1300,120],[1640,170],[110,330],[420,880],[760,930],[1120,890],[1480,860],[230,700],[1560,690],[90,520],[1650,450],[600,250],[1250,270],[820,780],[60,975]];
+$("chips").innerHTML=CH.map((c,i)=>`<div class="chip" style="left:${pos[i][0]}px;top:${pos[i][1]}px">${c}</div>`).join("");
+
+window.ready=new Promise(res=>{$("pf").addEventListener("load",async()=>{P=$("pf").contentWindow;await document.fonts.ready;await P.document.fonts.ready;await Promise.all([...document.images].map(i=>i.decode().catch(()=>{})));render(0);res(true)})});
+window.render=render;
+</script></body></html>

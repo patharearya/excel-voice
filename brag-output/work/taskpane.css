@@ -1,0 +1,210 @@
+/* Task pane for desktop Excel. Light themes get a silvery-blue base with white
+   cards, so the pane reads as separate from the white grid. In a dark Office
+   theme excel.ts overwrites --bg, --fg, --surface, --field and --line from
+   Office.context.officeTheme. */
+:root {
+  --bg: #dae6f7;
+  --fg: #1a2638;
+  --surface: #ffffff; /* preview card */
+  --field: #ffffff; /* inputs, buttons, chips */
+  --line: #b4c6e0;
+  --muted: #475a75;
+  --accent: #107c41; /* Excel green: primary actions and the live state only */
+  --accent-hover: #0c6a37;
+  --accent-fg: #ffffff;
+  --danger: #b3261e;
+  --warn: #8a5300;
+  --focus: #0f6cbd;
+  --radius: 4px;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --muted: #b5b5b5;
+  --accent: #3da56a;
+  --accent-hover: #4fb87b;
+  --accent-fg: #0b1f13;
+  --danger: #ff8a80;
+  --warn: #f2c14e;
+  --focus: #6cb8f6;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.45 "Segoe UI", system-ui, sans-serif;
+  padding: 16px 14px 24px;
+}
+::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+h2 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+p { margin: 0; }
+ul { list-style: none; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+
+button, input, select {
+  font: inherit;
+  color: inherit;
+}
+button {
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, border-color 150ms ease-out;
+}
+button:hover:not(:disabled) { background: color-mix(in srgb, var(--fg) 6%, var(--field)); }
+button:active:not(:disabled) { border-color: var(--muted); }
+button:disabled { opacity: 0.5; cursor: default; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 600;
+}
+.primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+kbd {
+  font: inherit;
+  font-size: 11px;
+  opacity: 0.85;
+  margin-left: 4px;
+}
+
+/* Input row */
+.top { display: grid; gap: 8px; }
+.mic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+.mic:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+.mic[data-recording] { background: var(--danger); border-color: var(--danger); color: #fff; }
+.icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.icon-stop { fill: currentColor; stroke: none; }
+.mic .icon-stop, .mic[data-recording] .icon-mic { display: none; }
+.mic[data-recording] .icon-stop { display: block; }
+
+.meter { height: 4px; background: var(--surface); border-radius: 2px; overflow: hidden; }
+#level { height: 100%; width: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform 60ms linear; }
+
+input[type="text"] {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--field);
+}
+input::placeholder { color: var(--muted); }
+
+/* State */
+.status { margin-top: 6px; color: var(--muted); min-height: 1.45em; }
+.transcript[hidden] + .status { margin-top: 14px; }
+.status[data-tone="busy"]::after { content: "…"; }
+.status[data-tone="error"] { color: var(--danger); }
+.status[data-tone="warn"] { color: var(--warn); }
+.status[data-tone="ok"] { color: var(--fg); }
+.transcript {
+  margin-top: 14px;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+.transcript::before { content: "“"; color: var(--muted); }
+.transcript::after { content: "”"; color: var(--muted); }
+.answer {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Preview */
+.preview {
+  margin-top: 14px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.preview li {
+  padding: 4px 0;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.preview li + li { border-top: 1px solid var(--line); }
+.preview[data-blocked] li { color: var(--muted); }
+.actions { display: flex; gap: 8px; margin-top: 10px; }
+.actions button { flex: 1; }
+
+/* Empty state */
+.examples { margin-top: 20px; }
+.examples h2 { font-weight: 400; font-size: 13px; margin-bottom: 8px; }
+.examples ul { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Chips, not text: they must not read as one more line of the heading. */
+.example {
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+  text-align: left;
+}
+.example:hover:not(:disabled) { border-color: var(--accent); background: var(--field); }
+
+/* Last change */
+.last {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.last > div { flex: 1; min-width: 0; }
+.last p { overflow-wrap: anywhere; }
+
+/* Settings */
+.settings { margin-top: 16px; color: var(--muted); font-size: 13px; }
+.settings + .settings { margin-top: 6px; }
+.settings summary { cursor: pointer; width: fit-content; }
+.settings label { display: block; margin: 8px 0 4px; }
+.settings select {
+  width: 100%;
+  padding: 5px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--field);
+}
+.hint { margin-top: 6px; }
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  margin: 8px 0 0;
+}
+
+.sideload { padding: 24px 0; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
