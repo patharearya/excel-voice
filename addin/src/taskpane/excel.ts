@@ -6,7 +6,10 @@ import type { Command } from "../../../proxy/commands.ts";
 import { describe, problem } from "../../../proxy/plan.ts";
 import { sheetContext, select, apply, undo, type Undo } from "./apply";
 
-const PROXY = "http://localhost:8787";
+// Served from localhost (npm start) -> the local proxy; served from GitHub Pages
+// -> the hosted proxy on Render. Render's URL is set in render.yaml's service name.
+const HOSTED_PROXY = "https://excel-voice-proxy.onrender.com";
+const PROXY = location.hostname === "localhost" ? "http://localhost:8787" : HOSTED_PROXY;
 // Below this peak level a recording is treated as silence and not sent:
 // silent audio comes back from Whisper as "Thank you." (Defect 1).
 const SILENT_PEAK = 0.02;
@@ -69,7 +72,24 @@ Office.onReady((info) => {
   diag(`ready, ${inExcel ? "in Excel" : "not in Excel"}; ${navigator.userAgent}`);
   shortcutDiag();
   status(inExcel ? "Ready" : "Not running inside Excel: commands can't be applied here.", inExcel ? "idle" : "warn");
+  if (inExcel) wake();
 });
+
+// The free hosted proxy sleeps after 15 idle minutes and takes up to a minute
+// to wake. Ping it as soon as the pane opens, and say so if it is slow.
+async function wake() {
+  const slow = setTimeout(() => status("Waking up the voice service. The first time can take up to a minute", "busy"), 2000);
+  try {
+    const r = await fetch(`${PROXY}/health`);
+    diag(`proxy ${PROXY} health ${r.status}`);
+    if ($("status").dataset.tone === "busy" && !busy) status("Ready");
+  } catch (e: any) {
+    diag(`proxy ${PROXY} unreachable: ${e?.message}`);
+    status(UNREACHABLE, "error");
+  } finally {
+    clearTimeout(slow);
+  }
+}
 
 // Dark Office themes (dark grey, black) take Office's own colours. Light themes
 // keep the CSS paper background on purpose, so the pane doesn't blend into the grid.
@@ -193,7 +213,10 @@ function meter(stream: MediaStream) {
   tick();
 }
 
-const UNREACHABLE = "Can't reach the voice service. Is the proxy running (npm start in proxy/)?";
+const UNREACHABLE =
+  PROXY === HOSTED_PROXY
+    ? "Can't reach the voice service. Check your internet connection and try again."
+    : "Can't reach the voice service. Is the proxy running (npm start in proxy/)?";
 const RATE_LIMITED = "Too many requests right now. Wait a few seconds and try again.";
 
 async function transcribe(blob: Blob) {

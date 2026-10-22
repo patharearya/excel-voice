@@ -5,7 +5,11 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 const urlDev = "https://localhost:3000/";
-const urlProd = "https://www.contoso.com/"; // CHANGE THIS TO YOUR PRODUCTION DEPLOYMENT LOCATION
+const urlProd = "https://patharearya.github.io/excel-voice/"; // GitHub Pages, deployed by .github/workflows/pages.yml
+// The published add-in gets its own ID so it can be installed next to the
+// development copy that `npm start` sideloads (same ID would make them clash).
+const idDev = "e01ed2ab-7271-4f4f-a4fc-c329dff86784";
+const idProd = "b873a624-7ccd-4833-acff-e1bd5c27d5c9";
 
 async function getHttpsOptions() {
   const httpsOptions = await devCerts.getHttpsServerOptions();
@@ -69,7 +73,7 @@ module.exports = async (env, options) => {
               if (dev) {
                 return content;
               } else {
-                return content.toString().replace(new RegExp(urlDev, "g"), urlProd);
+                return content.toString().replace(new RegExp(urlDev, "g"), urlProd).replace(idDev, idProd);
               }
             },
           },

@@ -1,0 +1,19 @@
+# Render Blueprint for the voice service (proxy/). Free plan: sleeps after 15
+# idle minutes and wakes on the next request (the task pane pings /health on open).
+# GROQ_API_KEY is entered in the Render dashboard, never committed.
+services:
+  - type: web
+    name: excel-voice-proxy
+    runtime: node
+    plan: free
+    rootDir: proxy
+    buildCommand: npm install --omit=dev
+    startCommand: node server.mjs
+    healthCheckPath: /health
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://patharearya.github.io
+      - key: SAVE_RECORDINGS
+        value: "0"

@@ -2,6 +2,9 @@
   "name": "excel-voice-proxy",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
   "scripts": {
     "start": "node --env-file=.env server.mjs",
     "test": "vitest run",

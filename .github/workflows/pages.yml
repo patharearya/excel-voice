@@ -1,0 +1,43 @@
+# Builds the add-in for production and publishes it to
+# https://patharearya.github.io/excel-voice/ (task pane, icons, manifest.xml,
+# and the install/uninstall scripts).
+name: Deploy add-in to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ["addin/**", "proxy/plan.ts", "proxy/commands.ts", "install/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: addin/package-lock.json
+      - run: npm ci
+        working-directory: addin
+      - run: npm run build
+        working-directory: addin
+      - run: cp install/*.cmd addin/dist/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: addin/dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
