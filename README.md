@@ -14,10 +14,9 @@ would rather say what they want than click through it.
 - **One-step Undo.** Excel's own Ctrl+Z can't undo changes made by an add-in,
   so Excel Voice keeps its own copy of the cells it changes.
 
-> **Status:** early, working prototype (personal project). It runs on your own
-> computer: you start it from two Command Prompt windows, then use the panel
-> inside Excel. There is no one-click installer yet, but the steps below
-> assume no coding experience.
+> **Status:** early, working prototype (personal project). Installing takes
+> about a minute: download one file and double-click it. No coding, no
+> accounts, nothing to keep running.
 
 ---
 
@@ -50,19 +49,157 @@ gets *"I didn't catch a command in that"*. Excel Voice never guesses.
   later). Excel in a web browser and Excel on Mac won't work.
 - **A microphone.** Your laptop's built-in one is fine. You can also type
   commands instead of speaking.
-- **About 20 minutes** for the one-time setup below.
-
-You don't need to know how to code. You will copy and paste a few lines into a
-window called **Command Prompt**; every step below says exactly what to paste
-and what you should see.
+- **An internet connection.**
 
 ---
 
-## Part 1: One-time setup
+## Install
+
+1. **Download the installer:**
+   [install-excel-voice.cmd](https://patharearya.github.io/excel-voice/install-excel-voice.cmd).
+   If your browser asks whether to keep the file, choose **Keep**.
+2. **Double-click the downloaded file** (it's in your **Downloads** folder).
+3. Windows may show **"Windows protected your PC"**. This appears for any
+   small program that isn't from a big publisher. Click **More info**, then
+   **Run anyway**.
+4. A black window says **"Excel Voice is installed."** Press any key to close
+   it.
+
+The installer only does two things: it saves one small file describing the
+add-in in your `AppData\Local\ExcelVoice` folder, and tells Excel where that
+file is. It needs no administrator rights, and you can read it in
+[install/](install/) before running it.
+
+## Open it
+
+1. Open **Excel** (close it first if it was already open) and open any
+   workbook. A blank one is fine.
+2. On the **Home** tab, click **Add-ins** (near the right end of the ribbon).
+3. Under **Developer Add-ins**, click **Excel Voice**.
+
+The panel opens on the right. After the first time, an **Excel Voice** button
+also appears at the right end of the **Home** tab.
+
+**"Waking up the voice service…"** The voice service runs on a free host that
+goes to sleep after 15 minutes without use. The first time you open the panel
+after a break, it can take up to a minute to wake. After that, it's fast.
+
+---
+
+## Use it
+
+1. Click **Speak**, say your command, click **Stop**. (Or type the command
+   into the box under the button and press **Enter**.)
+2. The panel shows what it heard, a list under **Will change**, and selects
+   those cells in your sheet. Nothing has changed yet.
+3. Check the selection. Press **Enter** (or **Apply**) to do it, **Esc** (or
+   **Cancel**) to drop it.
+4. The change appears under **Last change** with an **Undo** button. Undo
+   puts the cells back exactly as they were: values, formulas and formatting.
+
+Not sure what to say? With nothing pending, the panel shows example commands.
+Click one to try it.
+
+**First recording:** Windows or Excel may ask for permission to use the
+microphone. Click **Allow**.
+
+---
+
+## Uninstall
+
+Download and double-click
+[uninstall-excel-voice.cmd](https://patharearya.github.io/excel-voice/uninstall-excel-voice.cmd),
+then close and reopen Excel.
+
+---
+
+## Troubleshooting
+
+| What you see | What to do |
+|---|---|
+| **"Windows protected your PC"** when running the installer | Click **More info**, then **Run anyway**. |
+| **Excel Voice isn't under Home → Add-ins** | Close **every** Excel window and open Excel again. If it's still missing, run the installer again. |
+| **"Waking up the voice service" for more than a minute** | Close the panel and open it again. |
+| **"Can't reach the voice service"** | Check your internet connection, then close and reopen the panel. |
+| **Panel is blank** | Close the panel and open it again. |
+| **"No sound was picked up"** | The mic recorded silence. Open **Microphone** at the bottom of the panel and pick another device. Bluetooth headsets (AirPods, etc.) often record silence until they're actively in use. |
+| **"Microphone access is blocked"** | Windows Settings → Privacy & security → Microphone: turn on microphone access, and access for desktop apps. |
+| **"Too many requests right now"** | Groq's free tier allows about 30 requests a minute. Wait a few seconds. |
+| **"I didn't catch a command in that"** | The sentence wasn't one of the supported commands, or it was misheard. Check the quoted transcript in the panel, then rephrase or type it. |
+| **"Can't do this safely: …"** | The command was understood but would cause a problem, such as putting a total inside the range it adds up (a circular reference). The reason is shown; rephrase with a different target cell. |
+| **Something else** | Open **Diagnostics** at the bottom of the panel; it has the technical details of the last steps. Include them if you report a problem. |
+
+---
+
+## Good to know
+
+- **Privacy.** Your recording goes to the Excel Voice service (hosted on
+  Render), which passes it to Groq for transcription. The text, plus your
+  sheet's used range and row-1 headers, goes to Groq to work out the command.
+  Other cell contents are not sent. The hosted service does not save
+  recordings.
+- **Shared free limit.** Everyone using the hosted copy shares one free Groq
+  account (about 30 requests a minute). If you see "Too many requests", wait a
+  few seconds. For heavy use, run it yourself with your own key (below).
+- **Undo is one step**, and only for Excel Voice's own last change. If you
+  edit those cells by hand afterwards, Undo will overwrite your edits.
+- **Undo covers** values, formulas, number formats, font, fill, borders and
+  alignment. It does not cover conditional formatting, comments, merged cells
+  or data validation.
+- **Currency and dates** use US style (`$`, month/day/year).
+- **Keyboard shortcut.** A shortcut (Ctrl+Shift+Alt+V) is declared but did not
+  register on the development machine. Use the Speak button.
+
+---
+
+## How it works
+
+```
+Speak in the panel ──audio──▶ voice service ──▶ Groq Whisper ──▶ text
+text + sheet layout ────────▶ voice service ──▶ Groq LLM ──▶ command list (JSON)
+command list ──▶ checked against a strict schema and safety rules
+             ──▶ preview + cells selected ──▶ Apply ──▶ Office.js edits the sheet
+```
+
+The language model only *interprets*: it turns your sentence into one of a few
+fixed command shapes. It never touches the spreadsheet. The add-in validates
+every command (Zod schema plus checks such as "is the target inside its own
+range"), shows it to you, and only then runs it with Office.js.
+
+Where things run:
+
+- **The panel** (`addin/`) is published to GitHub Pages by
+  [.github/workflows/pages.yml](.github/workflows/pages.yml) on every push to
+  `main`, together with `manifest.xml` and the install scripts.
+- **The voice service** (`proxy/`) holds the Groq key and runs on Render's
+  free plan, set up from [render.yaml](render.yaml). It only accepts calls
+  from the published panel.
+- When the panel is loaded from `localhost` (`npm start`), it uses a voice
+  service on your own computer instead.
+
+```
+addin/    Excel task-pane add-in (TypeScript, Office.js)
+proxy/    Node voice service holding the Groq key; command schema, parsing, eval
+install/  double-click install and uninstall scripts
+```
+
+---
+
+## Run it yourself (for developers)
+
+The installer above uses the hosted copy. To change the code, or to run
+everything on your own computer with your own Groq key, follow these steps
+instead. They assume no coding experience.
+
+> If you also installed the hosted copy, Excel lists two "Excel Voice"
+> add-ins. They don't interfere: the one started by `npm start` uses your own
+> computer, the installed one uses the hosted service.
+
+### Part 1: One-time setup
 
 Do Part 1 once. After that, you only need Part 2 each time you use it.
 
-### Step 1. Install Node.js
+#### Step 1. Install Node.js
 
 Node.js is a free program that runs Excel Voice's two small helper programs.
 
@@ -72,7 +209,7 @@ Node.js is a free program that runs Excel Voice's two small helper programs.
 3. Open the downloaded file and click **Next** on every screen, then
    **Install**, then **Finish**. The default options are all fine.
 
-### Step 2. Install Git
+#### Step 2. Install Git
 
 Git is a free program that downloads this project for you.
 
@@ -81,7 +218,7 @@ Git is a free program that downloads this project for you.
 3. Open the downloaded file and click **Next** on every screen (there are a
    lot; the defaults are fine), then **Install**, then **Finish**.
 
-### Step 3. Open Command Prompt
+#### Step 3. Open Command Prompt
 
 Command Prompt is a window where you type (or paste) instructions for your
 computer, one line at a time.
@@ -121,7 +258,7 @@ You should see something like `git version 2.51.0`.
 > Programs installed while Command Prompt was open aren't visible to it until
 > you reopen it. If it still fails, repeat Step 1 or Step 2.
 
-### Step 4. Download Excel Voice
+#### Step 4. Download Excel Voice
 
 In the same Command Prompt window, paste this and press Enter:
 
@@ -132,7 +269,7 @@ git clone https://github.com/patharearya/excel-voice.git
 You'll see a few lines ending in `done.` This created a folder called
 **excel-voice** inside your user folder (`C:\Users\YourName\excel-voice`).
 
-### Step 5. Get your free Groq key
+#### Step 5. Get your free Groq key
 
 Groq is the free online service that turns your speech into text and works
 out what you meant. It needs a "key", a long password that identifies you.
@@ -145,7 +282,7 @@ out what you meant. It needs a "key", a long password that identifies you.
    **Keep this page open**: Groq only shows the key once. If you lose it,
    just create another.
 
-### Step 6. Set up the voice service
+#### Step 6. Set up the voice service
 
 Back in Command Prompt, paste each line below **one at a time**, pressing
 Enter after each and waiting for it to finish.
@@ -193,7 +330,7 @@ Delete `gsk_...` and paste your key in its place, so the line reads
 > anywhere. If it ever leaks, delete it on the Groq keys page and make a new
 > one.
 
-### Step 7. Set up the Excel add-in
+#### Step 7. Set up the Excel add-in
 
 Still in Command Prompt, paste these one at a time:
 
@@ -214,14 +351,14 @@ This one takes a few minutes and prints a lot. Wait for the
 
 ---
 
-## Part 2: Start Excel Voice (every time)
+### Part 2: Start Excel Voice (every time)
 
 Excel Voice needs **two Command Prompt windows** open while you use it: one
 runs the voice service, the other loads the panel into Excel.
 
 **First, close Excel** if it's open. Excel Voice opens it for you.
 
-### Window 1: start the voice service
+#### Window 1: start the voice service
 
 1. Open Command Prompt (Windows key, type **cmd**, click **Command Prompt**).
 2. Paste these one at a time, pressing Enter after each:
@@ -243,7 +380,7 @@ runs the voice service, the other loads the panel into Excel.
 **Leave this window open**, and don't type anything else in it. You can
 minimise it. If you close it, the panel can't hear you.
 
-### Window 2: open Excel with the panel
+#### Window 2: open Excel with the panel
 
 1. Open a **second** Command Prompt window the same way.
 2. Paste these one at a time:
@@ -272,28 +409,7 @@ minimise it. If you close it, the panel can't hear you.
 > **Blank panel?** It opened before everything was ready. Close the panel
 > with the **X** in its top corner and click **Excel Voice** again.
 
----
-
-## Use it
-
-1. Click **Speak**, say your command, click **Stop**. (Or type the command
-   into the box under the button and press **Enter**.)
-2. The panel shows what it heard, a list under **Will change**, and selects
-   those cells in your sheet. Nothing has changed yet.
-3. Check the selection. Press **Enter** (or **Apply**) to do it, **Esc** (or
-   **Cancel**) to drop it.
-4. The change appears under **Last change** with an **Undo** button. Undo
-   puts the cells back exactly as they were: values, formulas and formatting.
-
-Not sure what to say? With nothing pending, the panel shows example commands.
-Click one to try it.
-
-**First recording:** Windows or Excel may ask for permission to use the
-microphone. Click **Allow**.
-
----
-
-## Stop it
+### Stop it
 
 1. Click into **Window 2** (the one you used to open Excel) and paste:
 
@@ -309,9 +425,7 @@ microphone. Click **Allow**.
 
 Next time, start again from **Part 2**.
 
----
-
-## Troubleshooting
+### Troubleshooting the local setup
 
 | What you see | What to do |
 |---|---|
@@ -320,57 +434,11 @@ Next time, start again from **Part 2**.
 | **"running scripts is disabled on this system"** | You're in PowerShell, not Command Prompt. Open **Command Prompt** instead (Windows key, type **cmd**). |
 | **Window 1 shows "GROQ_API_KEY is not set"** | The key wasn't saved. Repeat the `notepad .env` part of Step 6, make sure you clicked **File → Save**. |
 | **No Excel Voice button on the Home tab** | Check Window 2 for an error. Run `npm run stop` there, then `npm start` again. |
-| **"No sound was picked up"** | The mic recorded silence. Open **Microphone** at the bottom of the panel and pick another device. Bluetooth headsets (AirPods, etc.) often record silence until they're actively in use. |
-| **"Microphone access is blocked"** | Windows Settings → Privacy & security → Microphone: turn on microphone access, and access for desktop apps. |
-| **"Can't reach the voice service"** | The voice service isn't running. Start it (Part 2, Window 1) and keep that window open. |
-| **"Too many requests right now"** | Groq's free tier allows about 30 requests a minute. Wait a few seconds. |
-| **"I didn't catch a command in that"** | The sentence wasn't one of the supported commands, or it was misheard. Check the quoted transcript in the panel, then rephrase or type it. |
-| **"Can't do this safely: …"** | The command was understood but would cause a problem, such as putting a total inside the range it adds up (a circular reference). The reason is shown; rephrase with a different target cell. |
-| **Panel is blank** | Close the panel and open it again from **Home → Excel Voice**. |
+| **"Can't reach the voice service. Is the proxy running"** | Start it (Part 2, Window 1) and keep that window open. |
+| **Blank panel** | Close the panel and open it again from **Home → Excel Voice**. |
 | **"Error installing add-ins" in Excel's status bar** | Seen during development without any effect on the panel. Ignore it if the panel works. |
-| **Something else** | Open **Diagnostics** at the bottom of the panel; it has the technical details of the last steps. Include them if you report a problem. |
 
----
-
-## Good to know
-
-- **Privacy.** Your recording is sent to Groq for transcription, and the text
-  plus your sheet's used range and row-1 headers are sent to Groq to work out
-  the command. Cell contents are not sent. Each recording is also saved on
-  your computer in `proxy/recordings/` so problems can be replayed; delete
-  that folder whenever you like.
-- **Undo is one step**, and only for Excel Voice's own last change. If you
-  edit those cells by hand afterwards, Undo will overwrite your edits.
-- **Undo covers** values, formulas, number formats, font, fill, borders and
-  alignment. It does not cover conditional formatting, comments, merged cells
-  or data validation.
-- **Currency and dates** use US style (`$`, month/day/year). To change them,
-  edit `numberFormatCode` in `proxy/plan.ts`.
-- **Keyboard shortcut.** A shortcut (Ctrl+Shift+Alt+V) is declared but did not
-  register on the development machine. Use the Speak button.
-
----
-
-## How it works
-
-```
-Speak in the panel ──audio──▶ proxy ──▶ Groq Whisper ──▶ text
-text + sheet layout ────────▶ proxy ──▶ Groq LLM ──▶ command list (JSON)
-command list ──▶ checked against a strict schema and safety rules
-             ──▶ preview + cells selected ──▶ Apply ──▶ Office.js edits the sheet
-```
-
-The language model only *interprets*: it turns your sentence into one of a few
-fixed command shapes. It never touches the spreadsheet. The add-in validates
-every command (Zod schema plus checks such as "is the target inside its own
-range"), shows it to you, and only then runs it with Office.js.
-
-```
-addin/   Excel task-pane add-in (TypeScript, Office.js)
-proxy/   local Node server holding the Groq key; command schema, parsing, eval
-```
-
-## For developers
+### Tests and evaluation
 
 ```
 cd proxy
@@ -378,8 +446,9 @@ npm test                    # Vitest: schema, address maths, parsing (no network
 npm run eval -- --repeat 3  # replays proxy/eval/cases.json against Groq, 3 runs
 ```
 
-The evaluation set has 38 spoken and typed commands with expected results.
-Current model `openai/gpt-oss-120b` scores 97–100% per run.
+The evaluation set has 52 spoken and typed commands with expected results.
+The last complete run (38 cases, before the latest batch of commands) scored
+97–100% per run with `openai/gpt-oss-120b`.
 
 - [PROJECT_LOG.md](PROJECT_LOG.md): every significant defect, what it first
   looked like, and the measurement that settled it. Read it first.

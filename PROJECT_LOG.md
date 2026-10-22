@@ -357,3 +357,31 @@ extra read. Not covered: "double B and change price and total accordingly"
 - NOT DONE: eval 52x3 was running at shutdown, no result saved; rerun
   `npm run eval -- --repeat 3`. Not tested live in Excel. Borders and
   underline Undo restore unverified.
+
+## Hosting (2026-10-22)
+- Panel on GitHub Pages (pages.yml, production build, own add-in ID
+  b873a624-... so it can sit beside the npm-start dev copy). Voice service on
+  Render free plan from render.yaml, public-repo deploy (Render's GitHub app
+  couldn't see the repo; public URL works, but no auto-deploy on push: use
+  Manual Deploy after proxy changes).
+- Install for users: install/install-excel-voice.cmd. Desktop Excel on
+  Windows has no documented "Upload My Add-in" (that's Excel on the web);
+  the documented desktop route is a shared-folder catalog (many clicks). The
+  installer instead writes the Wef\Developer registry value that
+  office-addin-dev-settings uses for `npm start` (value name = add-in ID,
+  data = manifest path). Excel lists it under Home > Add-ins > Developer
+  Add-ins.
+- Proxy: ALLOWED_ORIGINS allowlist, /health, 10 MB cap, SAVE_RECORDINGS=0.
+  Found while doing this: on a fresh clone proxy/recordings/ doesn't exist and
+  writeFileSync threw, so every transcription failed for a new local user.
+  Now mkdir on demand.
+- Measured: local run with hosted settings (other origin gets the Pages
+  origin back, 11 MB -> 413, real transcription 709 ms, 0 files saved).
+  Installer run while Pages was down: curl 404, error shown, registry
+  untouched. Live: Render /health 200 in 0.39 s, CORS header = Pages origin,
+  /interpret and /transcribe correct; Pages serves manifest, pane and both
+  scripts (200); installer downloaded from Pages registered the ID; user
+  opened it from Developer Add-ins in Excel and the pane came up.
+- First Pages run was cancelled (pushed before Pages was enabled); the manual
+  re-run sat queued ~10 min on GitHub's side before succeeding.
+- Open: placeholder "Logo" icon from the template shows in the Add-ins list.
