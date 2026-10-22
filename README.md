@@ -1,5 +1,9 @@
 # Excel Voice
 
+[![Excel Voice in 21 seconds: click to play](brag-output/brag.jpg)](https://patharearya.github.io/excel-voice/brag.mp4)
+
+*Click the picture to watch the 21-second video.*
+
 Talk to Excel. Say *"make column C currency and bold the header row"*, check the
 preview, press Enter, and it's done.
 

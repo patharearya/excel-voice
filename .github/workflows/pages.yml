@@ -1,12 +1,12 @@
 # Builds the add-in for production and publishes it to
 # https://patharearya.github.io/excel-voice/ (task pane, icons, manifest.xml,
-# and the install/uninstall scripts).
+# the install/uninstall scripts, and the launch video).
 name: Deploy add-in to GitHub Pages
 
 on:
   push:
     branches: [main]
-    paths: ["addin/**", "proxy/plan.ts", "proxy/commands.ts", "install/**", ".github/workflows/pages.yml"]
+    paths: ["addin/**", "proxy/plan.ts", "proxy/commands.ts", "install/**", "brag-output/brag.mp4", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -35,7 +35,7 @@ jobs:
         working-directory: addin
       - run: npm run build
         working-directory: addin
-      - run: cp install/*.cmd addin/dist/
+      - run: cp install/*.cmd brag-output/brag.mp4 addin/dist/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: addin/dist
